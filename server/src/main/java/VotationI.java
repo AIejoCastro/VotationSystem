@@ -24,5 +24,13 @@ public class VotationI implements Votation
         current.adapter.getCommunicator().shutdown();
     }
 
+    @Override
+    public void sendVote(String citizenId, String candidateId, com.zeroc.Ice.Current current) throws AlreadyVotedException {
+        boolean success = VoteManager.getInstance().receiveVote(citizenId, candidateId);
+        if (!success) {
+            throw new AlreadyVotedException();
+        }
+    }
+
     private final String _name;
 }

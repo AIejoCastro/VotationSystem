@@ -2,6 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
+import Demo.AlreadyVotedException;
 import Demo.VotationPrx;
 
 public class User
@@ -35,7 +36,7 @@ public class User
     private static int run(com.zeroc.Ice.Communicator communicator)
     {
         //
-        // First we try to connect to the object with the `hello'
+        // First, we try to connect to the object with the `hello'
         // identity. If it's not registered with the registry, we
         // search for an object with the ::Demo::Hello type.
         //
@@ -80,6 +81,21 @@ public class User
                 {
                     hello.shutdown();
                 }
+                else if(line.startsWith("v")) {
+                    System.out.println("Formato: v <citizenId> <candidateId>");
+                    String[] parts = line.split(" ");
+                    if(parts.length == 3) {
+                        try {
+                            hello.sendVote(parts[1], parts[2]);
+                            System.out.println("Voto enviado correctamente.");
+                        } catch (AlreadyVotedException e) {
+                            System.out.println("Este ciudadano ya ha votado.");
+                        }
+                    } else {
+                        System.out.println("Formato inválido.");
+                    }
+                }
+
                 else if(line.equals("x"))
                 {
                     // Nothing to do
@@ -115,6 +131,7 @@ public class User
                 "usage:\n" +
                         "t: send greeting\n" +
                         "s: shutdown server\n" +
+                        "v: send vote\n" +
                         "x: exit\n" +
                         "?: help\n");
     }
