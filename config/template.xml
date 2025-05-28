@@ -10,7 +10,7 @@
                 <option>-jar</option>
                 <option>server/build/libs/server.jar</option>
                 <adapter name="Hello" endpoints="tcp -h localhost">
-                    <object identity="hello-${index}" type="::Demo::Hello" property="Identity"/>
+                    <object identity="hello-${index}" type="::Demo::Votation" property="Identity"/>
                 </adapter>
             </server>
         </server-template>

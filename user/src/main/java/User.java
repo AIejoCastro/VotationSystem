@@ -15,7 +15,7 @@ public class User
         // Try with resources block - communicator is automatically destroyed
         // at the end of this try block
         //
-        try(com.zeroc.Ice.Communicator communicator = com.zeroc.Ice.Util.initialize(args, "config.client", extraArgs))
+        try(com.zeroc.Ice.Communicator communicator = com.zeroc.Ice.Util.initialize(args, "config.user", extraArgs))
         {
 
             if(!extraArgs.isEmpty())
@@ -44,15 +44,15 @@ public class User
                 com.zeroc.IceGrid.QueryPrx.checkedCast(communicator.stringToProxy("DemoIceGrid/Query"));
         try
         {
-            hello = VotationPrx.checkedCast(communicator.stringToProxy("hello"));
+            hello = VotationPrx.checkedCast(communicator.stringToProxy("votation"));
         }
         catch(com.zeroc.Ice.NotRegisteredException ex)
         {
-            hello = VotationPrx.checkedCast(query.findObjectByType("::Demo::Hello"));
+            hello = VotationPrx.checkedCast(query.findObjectByType("::Demo::Votation"));
         }
         if(hello == null)
         {
-            System.err.println("couldn't find a `::Demo::Hello' object");
+            System.err.println("couldn't find a `::Demo::Votation' object");
             return 1;
         }
 
@@ -102,7 +102,7 @@ public class User
             {
                 ex.printStackTrace();
             }
-            hello = VotationPrx.checkedCast(query.findObjectByType("::Demo::Hello"));
+            hello = VotationPrx.checkedCast(query.findObjectByType("::Demo::Votation"));
         }
         while(!line.equals("x"));
 

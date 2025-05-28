@@ -29,7 +29,7 @@ public class Server
             }
             else
             {
-                com.zeroc.Ice.ObjectAdapter adapter = communicator.createObjectAdapter("Hello");
+                com.zeroc.Ice.ObjectAdapter adapter = communicator.createObjectAdapter("Votation");
                 com.zeroc.Ice.Properties properties = communicator.getProperties();
                 com.zeroc.Ice.Identity id = com.zeroc.Ice.Util.stringToIdentity(properties.getProperty("Identity"));
                 adapter.add(new VotationI(properties.getProperty("Ice.ProgramName")), id);
