@@ -6,13 +6,12 @@
   <component name="ChangeListManager">
     <list default="true" id="24301e38-80d3-47e0-8e0d-97d4c3d83b83" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Votation.ice" beforeDir="false" afterPath="$PROJECT_DIR$/Votation.ice" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-1/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-1/config/config" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-2/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-2/config/config" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-3/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-3/config/config" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/registry/data.mdb" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/registry/data.mdb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/template.xml" beforeDir="false" afterPath="$PROJECT_DIR$/config/template.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/server/src/main/java/VotationI.java" beforeDir="false" afterPath="$PROJECT_DIR$/server/src/main/java/VotationI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/db/registry/lock.mdb" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/registry/lock.mdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/db/votes.csv" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/user/src/main/java/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/user/src/main/java/User.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -68,28 +67,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Gradle.VotationSystem.executor": "Run",
-    "Gradle.VotationSystem:user [:user:StressTest.main()].executor": "Debug",
-    "Gradle.VotationSystem:user [:user:User.main()].executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "/Users/alejandrocastro/Documents/Universidad/Decimo Semestre/Ingenieria de Software IV/Proyecto/VotationSystem/config",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.0",
-    "settings.editor.selected.configurable": "preferences.lookFeel",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Gradle.VotationSystem.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.VotationSystem:user [:user:StressTest.main()].executor&quot;: &quot;Debug&quot;,
+    &quot;Gradle.VotationSystem:user [:user:User.main()].executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/alejandrocastro/Documents/Universidad/Decimo Semestre/Ingenieria de Software IV/Proyecto/VotationSystem/config&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/config" />
@@ -117,11 +116,15 @@
       <workItem from="1748404318051" duration="263000" />
       <workItem from="1748404608180" duration="25000" />
       <workItem from="1748405108074" duration="1432000" />
-      <workItem from="1748464295876" duration="8785000" />
+      <workItem from="1748464295876" duration="9814000" />
+      <workItem from="1748483671550" duration="4581000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="com.intellij.fileTypeFactory" implementationName="*.ice" />
   </component>
 </project>
