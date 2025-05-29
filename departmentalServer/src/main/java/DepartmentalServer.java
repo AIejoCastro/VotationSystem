@@ -2,7 +2,7 @@
 // Copyright (c) ZeroC, Inc. All rights reserved.
 //
 
-public class Server
+public class DepartmentalServer
 {
     public static void main(String[] args)
     {

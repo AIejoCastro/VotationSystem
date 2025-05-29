@@ -8,7 +8,7 @@
             <parameter name="index"/>
             <server id="SimpleServer-${index}" exe="java" activation="on-demand">
                 <option>-jar</option>
-                <option>server/build/libs/server.jar</option>
+                <option>departmentalServer/build/libs/departmentalServer.jar</option>
                 <adapter name="Votation" endpoints="tcp -h localhost">
                     <object identity="hello-${index}" type="::Demo::Votation" property="Identity"/>
                 </adapter>

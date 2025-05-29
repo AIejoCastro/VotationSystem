@@ -8,5 +8,5 @@
  */
 
 rootProject.name = 'VotationSystem'
-include('server')
-include('user')
+include('departmentalServer')
+include('votingSite')

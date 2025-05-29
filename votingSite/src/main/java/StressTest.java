@@ -12,7 +12,7 @@ public class StressTest {
 
         ExecutorService executor = Executors.newFixedThreadPool(threads);
 
-        try (Communicator communicator = Util.initialize(args, "config.user")) {
+        try (Communicator communicator = Util.initialize(args, "config.votingSite")) {
             System.out.println("Conectando a servidores de votación a través de IceGrid...");
 
             // Crear proxies para los 3 servidores según tu template.xml
