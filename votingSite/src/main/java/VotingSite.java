@@ -33,7 +33,7 @@ public class VotingSite {
 
     private static int run(com.zeroc.Ice.Communicator communicator) {
         System.out.println("==============================================");
-        System.out.println("🔗 VOTING SITE - SISTEMA MIDDLEWARE");
+        System.out.println("  VOTING SITE - SISTEMA MIDDLEWARE");
         System.out.println("==============================================");
 
         // Inicializar reliable messaging
@@ -59,10 +59,10 @@ public class VotingSite {
         }
 
         if (votationProxy == null) {
-            System.out.println("[VotingSite] ⚠️  No hay servidores Votation disponibles en este momento");
-            System.out.println("[VotingSite] ⚠️  El sistema operará en modo degradado con reliable messaging");
+            System.out.println("[VotingSite] No hay servidores Votation disponibles en este momento");
+            System.out.println("[VotingSite] El sistema operará en modo degradado con reliable messaging");
         } else {
-            System.out.println("[VotingSite] ✅ Conectado a servidores de votación");
+            System.out.println("[VotingSite] Conectado a servidores de votación");
         }
 
         // Crear adaptador para el proxy de VotingMachine
@@ -76,9 +76,9 @@ public class VotingSite {
 
         adapter.activate();
 
-        System.out.println("[VotingSite] 🚀 Servidor proxy iniciado en puerto 9999");
-        System.out.println("[VotingSite] 📡 Esperando conexiones de VotingMachine...");
-        System.out.println("[VotingSite] 🔧 Reliable Messaging activo para garantizar entrega");
+        System.out.println("[VotingSite] Servidor proxy iniciado en puerto 9999");
+        System.out.println("[VotingSite] Esperando conexiones de VotingMachine...");
+        System.out.println("[VotingSite] Reliable Messaging activo para garantizar entrega");
 
         showAdminMenu();
 
@@ -136,7 +136,7 @@ public class VotingSite {
     }
 
     private static void showAdminMenu() {
-        System.out.println("\n📋 COMANDOS ADMINISTRATIVOS:");
+        System.out.println("\nCOMANDOS ADMINISTRATIVOS:");
         System.out.println("  status    - Estado del reliable messaging");
         System.out.println("  history   - Historial de votos y ACKs");
         System.out.println("  pending   - Votos pendientes en cola");
@@ -148,21 +148,21 @@ public class VotingSite {
 
     private static void showAvailableServers(com.zeroc.IceGrid.QueryPrx query) {
         try {
-            System.out.println("\n🔍 Consultando servidores disponibles en IceGrid...");
+            System.out.println("\nConsultando servidores disponibles en IceGrid...");
             VotationPrx proxy = VotationPrx.checkedCast(query.findObjectByType("::Demo::Votation"));
             if (proxy != null) {
-                System.out.println("✅ Servidor encontrado en IceGrid");
+                System.out.println("Servidor encontrado en IceGrid");
                 try {
                     proxy.ice_ping();
-                    System.out.println("✅ Estado: DISPONIBLE");
+                    System.out.println("Estado: DISPONIBLE");
                 } catch (Exception e) {
-                    System.out.println("❌ Estado: NO RESPONDE");
+                    System.out.println("Estado: NO RESPONDE");
                 }
             } else {
-                System.out.println("❌ No hay servidores Votation disponibles");
+                System.out.println("No hay servidores Votation disponibles");
             }
         } catch (Exception e) {
-            System.out.println("❌ Error consultando servidores: " + e.getMessage());
+            System.out.println("Error consultando servidores: " + e.getMessage());
         }
     }
 }
