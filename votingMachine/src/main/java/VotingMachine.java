@@ -43,8 +43,8 @@ public class VotingMachine {
         // Generar ID único para esta máquina de votación
         machineId = "VM-" + System.currentTimeMillis() % 10000;
 
-        System.out.println("🔧 Máquina de Votación ID: " + machineId);
-        System.out.println("🔗 Conectando al sistema central...");
+        System.out.println("Máquina de Votación ID: " + machineId);
+        System.out.println("Conectando al sistema central...");
 
         // Conectar al VotingSite (proxy)
         try {
