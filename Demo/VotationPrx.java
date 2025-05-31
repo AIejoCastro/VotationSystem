@@ -83,18 +83,18 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
         return f;
     }
 
-    default void sendVote(String citizenId, String candidateId)
+    default String sendVote(String citizenId, String candidateId)
         throws AlreadyVotedException
     {
-        sendVote(citizenId, candidateId, com.zeroc.Ice.ObjectPrx.noExplicitContext);
+        return sendVote(citizenId, candidateId, com.zeroc.Ice.ObjectPrx.noExplicitContext);
     }
 
-    default void sendVote(String citizenId, String candidateId, java.util.Map<String, String> context)
+    default String sendVote(String citizenId, String candidateId, java.util.Map<String, String> context)
         throws AlreadyVotedException
     {
         try
         {
-            _iceI_sendVoteAsync(citizenId, candidateId, context, true).waitForResponseOrUserEx();
+            return _iceI_sendVoteAsync(citizenId, candidateId, context, true).waitForResponseOrUserEx();
         }
         catch(AlreadyVotedException ex)
         {
@@ -106,12 +106,12 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
         }
     }
 
-    default java.util.concurrent.CompletableFuture<Void> sendVoteAsync(String citizenId, String candidateId)
+    default java.util.concurrent.CompletableFuture<java.lang.String> sendVoteAsync(String citizenId, String candidateId)
     {
         return _iceI_sendVoteAsync(citizenId, candidateId, com.zeroc.Ice.ObjectPrx.noExplicitContext, false);
     }
 
-    default java.util.concurrent.CompletableFuture<Void> sendVoteAsync(String citizenId, String candidateId, java.util.Map<String, String> context)
+    default java.util.concurrent.CompletableFuture<java.lang.String> sendVoteAsync(String citizenId, String candidateId, java.util.Map<String, String> context)
     {
         return _iceI_sendVoteAsync(citizenId, candidateId, context, false);
     }
@@ -124,13 +124,17 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @param sync -
      * @return -
      **/
-    default com.zeroc.IceInternal.OutgoingAsync<Void> _iceI_sendVoteAsync(String iceP_citizenId, String iceP_candidateId, java.util.Map<String, String> context, boolean sync)
+    default com.zeroc.IceInternal.OutgoingAsync<java.lang.String> _iceI_sendVoteAsync(String iceP_citizenId, String iceP_candidateId, java.util.Map<String, String> context, boolean sync)
     {
-        com.zeroc.IceInternal.OutgoingAsync<Void> f = new com.zeroc.IceInternal.OutgoingAsync<>(this, "sendVote", null, sync, _iceE_sendVote);
+        com.zeroc.IceInternal.OutgoingAsync<java.lang.String> f = new com.zeroc.IceInternal.OutgoingAsync<>(this, "sendVote", null, sync, _iceE_sendVote);
         f.invoke(true, context, null, ostr -> {
                      ostr.writeString(iceP_citizenId);
                      ostr.writeString(iceP_candidateId);
-                 }, null);
+                 }, istr -> {
+                     String ret;
+                     ret = istr.readString();
+                     return ret;
+                 });
         return f;
     }
 

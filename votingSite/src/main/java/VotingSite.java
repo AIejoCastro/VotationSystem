@@ -3,21 +3,23 @@
 //
 
 import Demo.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class VotingSite {
+    private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+
     public static void main(String[] args) {
         int status = 0;
         java.util.List<String> extraArgs = new java.util.ArrayList<>();
 
         try (com.zeroc.Ice.Communicator communicator = com.zeroc.Ice.Util.initialize(args, "config.votingSite", extraArgs)) {
 
-            // Cargar configuración del reliable messaging
             try {
                 communicator.getProperties().load("reliableMessaging/src/main/resources/config.reliableMessaging");
                 System.out.println("Configuración ReliableMessaging cargada correctamente");
             } catch (Exception e) {
                 System.out.println("Usando configuración por defecto para ReliableMessaging");
-                // Configurar locator manualmente si no se pudo cargar el archivo
                 communicator.getProperties().setProperty("Ice.Default.Locator", "DemoIceGrid/Locator:default -h localhost -p 4061");
             }
 
@@ -33,7 +35,6 @@ public class VotingSite {
     }
 
     private static int run(com.zeroc.Ice.Communicator communicator) {
-        // Inicializar reliable messaging
         ReliableMessagingService messagingService = ReliableMessagingService.getInstance();
         messagingService.initialize(communicator);
 
@@ -47,10 +48,8 @@ public class VotingSite {
         }
 
         try {
-            // Intentar conectar directamente por nombre
             hello = VotationPrx.checkedCast(communicator.stringToProxy("votation"));
         } catch (com.zeroc.Ice.NotRegisteredException ex) {
-            // Si falla, buscar a través de IceGrid
             System.out.println("Buscando servidor Votation a través de IceGrid...");
             hello = VotationPrx.checkedCast(query.findObjectByType("::Demo::Votation"));
         }
@@ -81,16 +80,7 @@ public class VotingSite {
                 } else if (line.startsWith("v")) {
                     String[] parts = line.split(" ");
                     if (parts.length == 3) {
-                        try {
-                            hello.sendVote(parts[1], parts[2]);
-                            System.out.println("Voto enviado correctamente.");
-                        } catch (AlreadyVotedException e) {
-                            System.out.println("Este ciudadano ya ha votado.");
-                        } catch (com.zeroc.Ice.LocalException e) {
-                            System.out.println("Servidor no disponible. Voto guardado localmente para reintento automático.");
-                            System.out.println("IceGrid buscará otro servidor disponible automáticamente.");
-                            messagingService.storeOfflineVote(parts[1], parts[2]);
-                        }
+                        sendVoteWithACK(hello, parts[1], parts[2], messagingService);
                     } else {
                         System.out.println("Formato: v <citizenId> <candidateId>");
                     }
@@ -98,9 +88,10 @@ public class VotingSite {
                     System.out.println("Votos pendientes: " + messagingService.getPendingVotesCount());
                 } else if (line.equals("status")) {
                     messagingService.printStatus();
-                } else if (line.equals("servers")) {
-                    // Mostrar servidores disponibles en IceGrid
-                    showAvailableServers(query);
+                } else if (line.equals("acks")) {
+                    messagingService.printStatus(); // Incluye info de ACKs
+                } else if (line.equals("history")) {
+                    messagingService.printACKHistory();
                 } else if (line.equals("x")) {
                     // Salir
                 } else if (line.equals("?")) {
@@ -110,7 +101,6 @@ public class VotingSite {
                     menu();
                 }
 
-                // Actualizar proxy para obtener balanceo de carga de IceGrid
                 try {
                     VotationPrx newProxy = VotationPrx.checkedCast(query.findObjectByType("::Demo::Votation"));
                     if (newProxy != null) {
@@ -129,23 +119,38 @@ public class VotingSite {
         return 0;
     }
 
-    private static void showAvailableServers(com.zeroc.IceGrid.QueryPrx query) {
+    private static void sendVoteWithACK(VotationPrx votationProxy, String citizenId, String candidateId,
+                                        ReliableMessagingService messagingService) {
+        String timestamp = LocalDateTime.now().format(timeFormatter);
+        System.out.println("[" + timestamp + "] Enviando voto: " + citizenId + " -> " + candidateId);
+
+        long startTime = System.currentTimeMillis();
+        String voteKey = citizenId + "|" + candidateId;
+
         try {
-            System.out.println("Consultando servidores disponibles en IceGrid...");
-            VotationPrx proxy = VotationPrx.checkedCast(query.findObjectByType("::Demo::Votation"));
-            if (proxy != null) {
-                System.out.println("Servidor encontrado en IceGrid");
-                try {
-                    proxy.ice_ping();
-                    System.out.println("Estado: DISPONIBLE");
-                } catch (Exception e) {
-                    System.out.println("Estado: NO RESPONDE");
-                }
-            } else {
-                System.out.println("No hay servidores Votation disponibles");
-            }
-        } catch (Exception e) {
-            System.out.println("Error consultando servidores: " + e.getMessage());
+            String ackId = votationProxy.sendVote(citizenId, candidateId);
+            long latency = System.currentTimeMillis() - startTime;
+
+            timestamp = LocalDateTime.now().format(timeFormatter);
+            System.out.println("[" + timestamp + "] ACK RECIBIDO: " + ackId + " (" + latency + "ms)");
+            System.out.println("[" + timestamp + "] Voto confirmado exitosamente");
+
+            messagingService.confirmVoteACK(voteKey, ackId, latency);
+
+        } catch (AlreadyVotedException e) {
+            long latency = System.currentTimeMillis() - startTime;
+            timestamp = LocalDateTime.now().format(timeFormatter);
+            System.out.println("[" + timestamp + "] Ciudadano ya votó - ACK duplicado: " + e.ackId + " (" + latency + "ms)");
+
+            messagingService.confirmVoteACK(voteKey, e.ackId, latency);
+
+        } catch (com.zeroc.Ice.LocalException e) {
+            timestamp = LocalDateTime.now().format(timeFormatter);
+            System.out.println("[" + timestamp + "] Servidor no disponible - SIN ACK");
+            System.out.println("[" + timestamp + "] Voto guardado para reintento automático");
+
+            String offlineVoteKey = messagingService.storeOfflineVoteWithACK(citizenId, candidateId);
+            messagingService.timeoutVote(offlineVoteKey);
         }
     }
 
@@ -156,7 +161,8 @@ public class VotingSite {
                         "v <citizenId> <candidateId>: send vote\n" +
                         "p: show pending votes count\n" +
                         "status: show reliable messaging status\n" +
-                        "servers: show available servers in IceGrid\n" +
+                        "acks: show ACK status\n" +
+                        "history: show vote history with ACKs\n" +
                         "s: shutdown server\n" +
                         "x: exit\n" +
                         "?: help\n"

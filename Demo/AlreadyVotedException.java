@@ -19,11 +19,24 @@ public class AlreadyVotedException extends com.zeroc.Ice.UserException
 {
     public AlreadyVotedException()
     {
+        this.ackId = "";
     }
 
     public AlreadyVotedException(Throwable cause)
     {
         super(cause);
+        this.ackId = "";
+    }
+
+    public AlreadyVotedException(String ackId)
+    {
+        this.ackId = ackId;
+    }
+
+    public AlreadyVotedException(String ackId, Throwable cause)
+    {
+        super(cause);
+        this.ackId = ackId;
     }
 
     public String ice_id()
@@ -31,11 +44,14 @@ public class AlreadyVotedException extends com.zeroc.Ice.UserException
         return "::Demo::AlreadyVotedException";
     }
 
+    public String ackId;
+
     /** @hidden */
     @Override
     protected void _writeImpl(com.zeroc.Ice.OutputStream ostr_)
     {
         ostr_.startSlice("::Demo::AlreadyVotedException", -1, true);
+        ostr_.writeString(ackId);
         ostr_.endSlice();
     }
 
@@ -44,9 +60,10 @@ public class AlreadyVotedException extends com.zeroc.Ice.UserException
     protected void _readImpl(com.zeroc.Ice.InputStream istr_)
     {
         istr_.startSlice();
+        ackId = istr_.readString();
         istr_.endSlice();
     }
 
     /** @hidden */
-    public static final long serialVersionUID = -6783582248899595975L;
+    public static final long serialVersionUID = -7856899813602863722L;
 }
