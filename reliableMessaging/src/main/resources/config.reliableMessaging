@@ -1,0 +1,25 @@
+# Configuración del Sistema de Mensajería Confiable
+
+# Intervalo de reintento en milisegundos
+ReliableMessaging.RetryInterval=10000
+
+# Ruta del archivo de cola offline
+ReliableMessaging.OfflineQueuePath=config/db/pending-votes.csv
+
+# Número máximo de reintentos
+ReliableMessaging.MaxRetries=100
+
+# Habilitar logs detallados (1=sí, 0=no)
+ReliableMessaging.VerboseLogging=1
+
+# Configuración de IceGrid - IMPORTANTE para el broker
+Ice.Default.Locator=DemoIceGrid/Locator:default -h localhost -p 4061
+
+# Configuración específica para IceGrid
+IceGrid.InstanceName=DemoIceGrid
+
+# Timeout para operaciones con IceGrid
+Ice.Override.Timeout=5000
+
+# Configuración de retry para IceGrid
+Ice.RetryIntervals=-1

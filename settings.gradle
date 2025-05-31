@@ -10,3 +10,4 @@
 rootProject.name = 'VotationSystem'
 include('departmentalServer')
 include('votingSite')
+include('reliableMessaging')
