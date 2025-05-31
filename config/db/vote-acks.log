@@ -1,0 +1,9 @@
+2025-05-30 23:46:21.458|PENDING|citizen4|candidateB|null|0
+2025-05-30 23:46:21.458|TIMEOUT|citizen4|candidateB|null|0
+2025-05-31 00:06:02.914|CONFIRMED|citizen4|candidateB|ACK-SimpleServer-1-fabf9eb2|42
+2025-05-31 00:12:40.974|PENDING|citizen6|candidateA|null|0
+2025-05-31 00:12:40.974|TIMEOUT|citizen6|candidateA|null|0
+2025-05-31 00:12:40.974|CONFIRMED|citizen6|candidateA|ACK-SimpleServer-2-62936551|37
+2025-05-31 01:21:02.735|PENDING|234567|candidate002|null|0
+2025-05-31 01:21:02.735|TIMEOUT|234567|candidate002|null|0
+2025-05-31 01:21:02.735|CONFIRMED|234567|candidate002|ACK-SimpleServer-3-7a2fc0d6|38

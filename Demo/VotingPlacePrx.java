@@ -15,7 +15,7 @@
 
 package Demo;
 
-public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
+public interface VotingPlacePrx extends com.zeroc.Ice.ObjectPrx
 {
     default void sayHello()
     {
@@ -83,20 +83,26 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
         return f;
     }
 
-    default String sendVote(String citizenId, String candidateId)
-        throws AlreadyVotedException
+    default String submitVote(String citizenId, String candidateId)
+        throws AlreadyVotedException,
+               VotingSystemException
     {
-        return sendVote(citizenId, candidateId, com.zeroc.Ice.ObjectPrx.noExplicitContext);
+        return submitVote(citizenId, candidateId, com.zeroc.Ice.ObjectPrx.noExplicitContext);
     }
 
-    default String sendVote(String citizenId, String candidateId, java.util.Map<String, String> context)
-        throws AlreadyVotedException
+    default String submitVote(String citizenId, String candidateId, java.util.Map<String, String> context)
+        throws AlreadyVotedException,
+               VotingSystemException
     {
         try
         {
-            return _iceI_sendVoteAsync(citizenId, candidateId, context, true).waitForResponseOrUserEx();
+            return _iceI_submitVoteAsync(citizenId, candidateId, context, true).waitForResponseOrUserEx();
         }
         catch(AlreadyVotedException ex)
+        {
+            throw ex;
+        }
+        catch(VotingSystemException ex)
         {
             throw ex;
         }
@@ -106,14 +112,14 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
         }
     }
 
-    default java.util.concurrent.CompletableFuture<java.lang.String> sendVoteAsync(String citizenId, String candidateId)
+    default java.util.concurrent.CompletableFuture<java.lang.String> submitVoteAsync(String citizenId, String candidateId)
     {
-        return _iceI_sendVoteAsync(citizenId, candidateId, com.zeroc.Ice.ObjectPrx.noExplicitContext, false);
+        return _iceI_submitVoteAsync(citizenId, candidateId, com.zeroc.Ice.ObjectPrx.noExplicitContext, false);
     }
 
-    default java.util.concurrent.CompletableFuture<java.lang.String> sendVoteAsync(String citizenId, String candidateId, java.util.Map<String, String> context)
+    default java.util.concurrent.CompletableFuture<java.lang.String> submitVoteAsync(String citizenId, String candidateId, java.util.Map<String, String> context)
     {
-        return _iceI_sendVoteAsync(citizenId, candidateId, context, false);
+        return _iceI_submitVoteAsync(citizenId, candidateId, context, false);
     }
 
     /**
@@ -124,9 +130,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @param sync -
      * @return -
      **/
-    default com.zeroc.IceInternal.OutgoingAsync<java.lang.String> _iceI_sendVoteAsync(String iceP_citizenId, String iceP_candidateId, java.util.Map<String, String> context, boolean sync)
+    default com.zeroc.IceInternal.OutgoingAsync<java.lang.String> _iceI_submitVoteAsync(String iceP_citizenId, String iceP_candidateId, java.util.Map<String, String> context, boolean sync)
     {
-        com.zeroc.IceInternal.OutgoingAsync<java.lang.String> f = new com.zeroc.IceInternal.OutgoingAsync<>(this, "sendVote", null, sync, _iceE_sendVote);
+        com.zeroc.IceInternal.OutgoingAsync<java.lang.String> f = new com.zeroc.IceInternal.OutgoingAsync<>(this, "submitVote", null, sync, _iceE_submitVote);
         f.invoke(true, context, null, ostr -> {
                      ostr.writeString(iceP_citizenId);
                      ostr.writeString(iceP_candidateId);
@@ -139,20 +145,132 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
     }
 
     /** @hidden */
-    static final Class<?>[] _iceE_sendVote =
+    static final Class<?>[] _iceE_submitVote =
     {
-        AlreadyVotedException.class
+        AlreadyVotedException.class,
+        VotingSystemException.class
     };
 
+    default boolean isSystemHealthy()
+    {
+        return isSystemHealthy(com.zeroc.Ice.ObjectPrx.noExplicitContext);
+    }
+
+    default boolean isSystemHealthy(java.util.Map<String, String> context)
+    {
+        return _iceI_isSystemHealthyAsync(context, true).waitForResponse();
+    }
+
+    default java.util.concurrent.CompletableFuture<java.lang.Boolean> isSystemHealthyAsync()
+    {
+        return _iceI_isSystemHealthyAsync(com.zeroc.Ice.ObjectPrx.noExplicitContext, false);
+    }
+
+    default java.util.concurrent.CompletableFuture<java.lang.Boolean> isSystemHealthyAsync(java.util.Map<String, String> context)
+    {
+        return _iceI_isSystemHealthyAsync(context, false);
+    }
+
+    /**
+     * @hidden
+     * @param context -
+     * @param sync -
+     * @return -
+     **/
+    default com.zeroc.IceInternal.OutgoingAsync<java.lang.Boolean> _iceI_isSystemHealthyAsync(java.util.Map<String, String> context, boolean sync)
+    {
+        com.zeroc.IceInternal.OutgoingAsync<java.lang.Boolean> f = new com.zeroc.IceInternal.OutgoingAsync<>(this, "isSystemHealthy", null, sync, null);
+        f.invoke(true, context, null, null, istr -> {
+                     boolean ret;
+                     ret = istr.readBool();
+                     return ret;
+                 });
+        return f;
+    }
+
+    default int getPendingVotesCount()
+    {
+        return getPendingVotesCount(com.zeroc.Ice.ObjectPrx.noExplicitContext);
+    }
+
+    default int getPendingVotesCount(java.util.Map<String, String> context)
+    {
+        return _iceI_getPendingVotesCountAsync(context, true).waitForResponse();
+    }
+
+    default java.util.concurrent.CompletableFuture<java.lang.Integer> getPendingVotesCountAsync()
+    {
+        return _iceI_getPendingVotesCountAsync(com.zeroc.Ice.ObjectPrx.noExplicitContext, false);
+    }
+
+    default java.util.concurrent.CompletableFuture<java.lang.Integer> getPendingVotesCountAsync(java.util.Map<String, String> context)
+    {
+        return _iceI_getPendingVotesCountAsync(context, false);
+    }
+
+    /**
+     * @hidden
+     * @param context -
+     * @param sync -
+     * @return -
+     **/
+    default com.zeroc.IceInternal.OutgoingAsync<java.lang.Integer> _iceI_getPendingVotesCountAsync(java.util.Map<String, String> context, boolean sync)
+    {
+        com.zeroc.IceInternal.OutgoingAsync<java.lang.Integer> f = new com.zeroc.IceInternal.OutgoingAsync<>(this, "getPendingVotesCount", null, sync, null);
+        f.invoke(true, context, null, null, istr -> {
+                     int ret;
+                     ret = istr.readInt();
+                     return ret;
+                 });
+        return f;
+    }
+
+    default String getSystemStatus()
+    {
+        return getSystemStatus(com.zeroc.Ice.ObjectPrx.noExplicitContext);
+    }
+
+    default String getSystemStatus(java.util.Map<String, String> context)
+    {
+        return _iceI_getSystemStatusAsync(context, true).waitForResponse();
+    }
+
+    default java.util.concurrent.CompletableFuture<java.lang.String> getSystemStatusAsync()
+    {
+        return _iceI_getSystemStatusAsync(com.zeroc.Ice.ObjectPrx.noExplicitContext, false);
+    }
+
+    default java.util.concurrent.CompletableFuture<java.lang.String> getSystemStatusAsync(java.util.Map<String, String> context)
+    {
+        return _iceI_getSystemStatusAsync(context, false);
+    }
+
+    /**
+     * @hidden
+     * @param context -
+     * @param sync -
+     * @return -
+     **/
+    default com.zeroc.IceInternal.OutgoingAsync<java.lang.String> _iceI_getSystemStatusAsync(java.util.Map<String, String> context, boolean sync)
+    {
+        com.zeroc.IceInternal.OutgoingAsync<java.lang.String> f = new com.zeroc.IceInternal.OutgoingAsync<>(this, "getSystemStatus", null, sync, null);
+        f.invoke(true, context, null, null, istr -> {
+                     String ret;
+                     ret = istr.readString();
+                     return ret;
+                 });
+        return f;
+    }
+
     /**
      * Contacts the remote server to verify that the object implements this type.
      * Raises a local exception if a communication error occurs.
      * @param obj The untyped proxy.
      * @return A proxy for this type, or null if the object does not support this type.
      **/
-    static VotationPrx checkedCast(com.zeroc.Ice.ObjectPrx obj)
+    static VotingPlacePrx checkedCast(com.zeroc.Ice.ObjectPrx obj)
     {
-        return com.zeroc.Ice.ObjectPrx._checkedCast(obj, ice_staticId(), VotationPrx.class, _VotationPrxI.class);
+        return com.zeroc.Ice.ObjectPrx._checkedCast(obj, ice_staticId(), VotingPlacePrx.class, _VotingPlacePrxI.class);
     }
 
     /**
@@ -162,9 +280,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @param context The Context map to send with the invocation.
      * @return A proxy for this type, or null if the object does not support this type.
      **/
-    static VotationPrx checkedCast(com.zeroc.Ice.ObjectPrx obj, java.util.Map<String, String> context)
+    static VotingPlacePrx checkedCast(com.zeroc.Ice.ObjectPrx obj, java.util.Map<String, String> context)
     {
-        return com.zeroc.Ice.ObjectPrx._checkedCast(obj, context, ice_staticId(), VotationPrx.class, _VotationPrxI.class);
+        return com.zeroc.Ice.ObjectPrx._checkedCast(obj, context, ice_staticId(), VotingPlacePrx.class, _VotingPlacePrxI.class);
     }
 
     /**
@@ -174,9 +292,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @param facet The name of the desired facet.
      * @return A proxy for this type, or null if the object does not support this type.
      **/
-    static VotationPrx checkedCast(com.zeroc.Ice.ObjectPrx obj, String facet)
+    static VotingPlacePrx checkedCast(com.zeroc.Ice.ObjectPrx obj, String facet)
     {
-        return com.zeroc.Ice.ObjectPrx._checkedCast(obj, facet, ice_staticId(), VotationPrx.class, _VotationPrxI.class);
+        return com.zeroc.Ice.ObjectPrx._checkedCast(obj, facet, ice_staticId(), VotingPlacePrx.class, _VotingPlacePrxI.class);
     }
 
     /**
@@ -187,9 +305,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @param context The Context map to send with the invocation.
      * @return A proxy for this type, or null if the object does not support this type.
      **/
-    static VotationPrx checkedCast(com.zeroc.Ice.ObjectPrx obj, String facet, java.util.Map<String, String> context)
+    static VotingPlacePrx checkedCast(com.zeroc.Ice.ObjectPrx obj, String facet, java.util.Map<String, String> context)
     {
-        return com.zeroc.Ice.ObjectPrx._checkedCast(obj, facet, context, ice_staticId(), VotationPrx.class, _VotationPrxI.class);
+        return com.zeroc.Ice.ObjectPrx._checkedCast(obj, facet, context, ice_staticId(), VotingPlacePrx.class, _VotingPlacePrxI.class);
     }
 
     /**
@@ -197,9 +315,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @param obj The untyped proxy.
      * @return A proxy for this type.
      **/
-    static VotationPrx uncheckedCast(com.zeroc.Ice.ObjectPrx obj)
+    static VotingPlacePrx uncheckedCast(com.zeroc.Ice.ObjectPrx obj)
     {
-        return com.zeroc.Ice.ObjectPrx._uncheckedCast(obj, VotationPrx.class, _VotationPrxI.class);
+        return com.zeroc.Ice.ObjectPrx._uncheckedCast(obj, VotingPlacePrx.class, _VotingPlacePrxI.class);
     }
 
     /**
@@ -208,9 +326,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @param facet The name of the desired facet.
      * @return A proxy for this type.
      **/
-    static VotationPrx uncheckedCast(com.zeroc.Ice.ObjectPrx obj, String facet)
+    static VotingPlacePrx uncheckedCast(com.zeroc.Ice.ObjectPrx obj, String facet)
     {
-        return com.zeroc.Ice.ObjectPrx._uncheckedCast(obj, facet, VotationPrx.class, _VotationPrxI.class);
+        return com.zeroc.Ice.ObjectPrx._uncheckedCast(obj, facet, VotingPlacePrx.class, _VotingPlacePrxI.class);
     }
 
     /**
@@ -219,9 +337,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @return A proxy with the specified per-proxy context.
      **/
     @Override
-    default VotationPrx ice_context(java.util.Map<String, String> newContext)
+    default VotingPlacePrx ice_context(java.util.Map<String, String> newContext)
     {
-        return (VotationPrx)_ice_context(newContext);
+        return (VotingPlacePrx)_ice_context(newContext);
     }
 
     /**
@@ -230,9 +348,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @return A proxy with the specified adapter ID.
      **/
     @Override
-    default VotationPrx ice_adapterId(String newAdapterId)
+    default VotingPlacePrx ice_adapterId(String newAdapterId)
     {
-        return (VotationPrx)_ice_adapterId(newAdapterId);
+        return (VotingPlacePrx)_ice_adapterId(newAdapterId);
     }
 
     /**
@@ -241,9 +359,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @return A proxy with the specified endpoints.
      **/
     @Override
-    default VotationPrx ice_endpoints(com.zeroc.Ice.Endpoint[] newEndpoints)
+    default VotingPlacePrx ice_endpoints(com.zeroc.Ice.Endpoint[] newEndpoints)
     {
-        return (VotationPrx)_ice_endpoints(newEndpoints);
+        return (VotingPlacePrx)_ice_endpoints(newEndpoints);
     }
 
     /**
@@ -252,9 +370,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @return A proxy with the specified locator cache timeout.
      **/
     @Override
-    default VotationPrx ice_locatorCacheTimeout(int newTimeout)
+    default VotingPlacePrx ice_locatorCacheTimeout(int newTimeout)
     {
-        return (VotationPrx)_ice_locatorCacheTimeout(newTimeout);
+        return (VotingPlacePrx)_ice_locatorCacheTimeout(newTimeout);
     }
 
     /**
@@ -263,9 +381,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @return A proxy with the specified invocation timeout.
      **/
     @Override
-    default VotationPrx ice_invocationTimeout(int newTimeout)
+    default VotingPlacePrx ice_invocationTimeout(int newTimeout)
     {
-        return (VotationPrx)_ice_invocationTimeout(newTimeout);
+        return (VotingPlacePrx)_ice_invocationTimeout(newTimeout);
     }
 
     /**
@@ -274,9 +392,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @return A proxy with the specified caching policy.
      **/
     @Override
-    default VotationPrx ice_connectionCached(boolean newCache)
+    default VotingPlacePrx ice_connectionCached(boolean newCache)
     {
-        return (VotationPrx)_ice_connectionCached(newCache);
+        return (VotingPlacePrx)_ice_connectionCached(newCache);
     }
 
     /**
@@ -285,9 +403,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @return A proxy with the specified endpoint selection policy.
      **/
     @Override
-    default VotationPrx ice_endpointSelection(com.zeroc.Ice.EndpointSelectionType newType)
+    default VotingPlacePrx ice_endpointSelection(com.zeroc.Ice.EndpointSelectionType newType)
     {
-        return (VotationPrx)_ice_endpointSelection(newType);
+        return (VotingPlacePrx)_ice_endpointSelection(newType);
     }
 
     /**
@@ -298,9 +416,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @return A proxy with the specified selection policy.
      **/
     @Override
-    default VotationPrx ice_secure(boolean b)
+    default VotingPlacePrx ice_secure(boolean b)
     {
-        return (VotationPrx)_ice_secure(b);
+        return (VotingPlacePrx)_ice_secure(b);
     }
 
     /**
@@ -309,9 +427,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @return A proxy with the specified encoding version.
      **/
     @Override
-    default VotationPrx ice_encodingVersion(com.zeroc.Ice.EncodingVersion e)
+    default VotingPlacePrx ice_encodingVersion(com.zeroc.Ice.EncodingVersion e)
     {
-        return (VotationPrx)_ice_encodingVersion(e);
+        return (VotingPlacePrx)_ice_encodingVersion(e);
     }
 
     /**
@@ -322,9 +440,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @return A proxy with the specified selection policy.
      **/
     @Override
-    default VotationPrx ice_preferSecure(boolean b)
+    default VotingPlacePrx ice_preferSecure(boolean b)
     {
-        return (VotationPrx)_ice_preferSecure(b);
+        return (VotingPlacePrx)_ice_preferSecure(b);
     }
 
     /**
@@ -333,9 +451,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @return A proxy with the specified router.
      **/
     @Override
-    default VotationPrx ice_router(com.zeroc.Ice.RouterPrx router)
+    default VotingPlacePrx ice_router(com.zeroc.Ice.RouterPrx router)
     {
-        return (VotationPrx)_ice_router(router);
+        return (VotingPlacePrx)_ice_router(router);
     }
 
     /**
@@ -344,9 +462,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @return A proxy with the specified locator.
      **/
     @Override
-    default VotationPrx ice_locator(com.zeroc.Ice.LocatorPrx locator)
+    default VotingPlacePrx ice_locator(com.zeroc.Ice.LocatorPrx locator)
     {
-        return (VotationPrx)_ice_locator(locator);
+        return (VotingPlacePrx)_ice_locator(locator);
     }
 
     /**
@@ -355,9 +473,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @return A proxy with the specified collocation optimization.
      **/
     @Override
-    default VotationPrx ice_collocationOptimized(boolean b)
+    default VotingPlacePrx ice_collocationOptimized(boolean b)
     {
-        return (VotationPrx)_ice_collocationOptimized(b);
+        return (VotingPlacePrx)_ice_collocationOptimized(b);
     }
 
     /**
@@ -365,9 +483,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @return A proxy that uses twoway invocations.
      **/
     @Override
-    default VotationPrx ice_twoway()
+    default VotingPlacePrx ice_twoway()
     {
-        return (VotationPrx)_ice_twoway();
+        return (VotingPlacePrx)_ice_twoway();
     }
 
     /**
@@ -375,9 +493,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @return A proxy that uses oneway invocations.
      **/
     @Override
-    default VotationPrx ice_oneway()
+    default VotingPlacePrx ice_oneway()
     {
-        return (VotationPrx)_ice_oneway();
+        return (VotingPlacePrx)_ice_oneway();
     }
 
     /**
@@ -385,9 +503,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @return A proxy that uses batch oneway invocations.
      **/
     @Override
-    default VotationPrx ice_batchOneway()
+    default VotingPlacePrx ice_batchOneway()
     {
-        return (VotationPrx)_ice_batchOneway();
+        return (VotingPlacePrx)_ice_batchOneway();
     }
 
     /**
@@ -395,9 +513,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @return A proxy that uses datagram invocations.
      **/
     @Override
-    default VotationPrx ice_datagram()
+    default VotingPlacePrx ice_datagram()
     {
-        return (VotationPrx)_ice_datagram();
+        return (VotingPlacePrx)_ice_datagram();
     }
 
     /**
@@ -405,9 +523,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @return A proxy that uses batch datagram invocations.
      **/
     @Override
-    default VotationPrx ice_batchDatagram()
+    default VotingPlacePrx ice_batchDatagram()
     {
-        return (VotationPrx)_ice_batchDatagram();
+        return (VotingPlacePrx)_ice_batchDatagram();
     }
 
     /**
@@ -416,9 +534,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @return A proxy with the specified compression setting.
      **/
     @Override
-    default VotationPrx ice_compress(boolean co)
+    default VotingPlacePrx ice_compress(boolean co)
     {
-        return (VotationPrx)_ice_compress(co);
+        return (VotingPlacePrx)_ice_compress(co);
     }
 
     /**
@@ -427,9 +545,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @return A proxy with the specified timeout.
      **/
     @Override
-    default VotationPrx ice_timeout(int t)
+    default VotingPlacePrx ice_timeout(int t)
     {
-        return (VotationPrx)_ice_timeout(t);
+        return (VotingPlacePrx)_ice_timeout(t);
     }
 
     /**
@@ -438,9 +556,9 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @return A proxy with the specified connection ID.
      **/
     @Override
-    default VotationPrx ice_connectionId(String connectionId)
+    default VotingPlacePrx ice_connectionId(String connectionId)
     {
-        return (VotationPrx)_ice_connectionId(connectionId);
+        return (VotingPlacePrx)_ice_connectionId(connectionId);
     }
 
     /**
@@ -449,13 +567,13 @@ public interface VotationPrx extends com.zeroc.Ice.ObjectPrx
      * @return A fixed proxy bound to the given connection.
      **/
     @Override
-    default VotationPrx ice_fixed(com.zeroc.Ice.Connection connection)
+    default VotingPlacePrx ice_fixed(com.zeroc.Ice.Connection connection)
     {
-        return (VotationPrx)_ice_fixed(connection);
+        return (VotingPlacePrx)_ice_fixed(connection);
     }
 
     static String ice_staticId()
     {
-        return "::Demo::Votation";
+        return "::Demo::VotingPlace";
     }
 }

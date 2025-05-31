@@ -5,12 +5,14 @@
 #pragma once
 module Demo
 {
-    exception AlreadyVotedException {};
+    exception AlreadyVotedException {
+        string ackId; // ID del voto duplicado
+    };
 
     interface Votation
     {
         idempotent void sayHello();
         void shutdown();
-        void sendVote(string citizenId, string candidateId) throws AlreadyVotedException;
+        string sendVote(string citizenId, string candidateId) throws AlreadyVotedException;
     }
 }

@@ -21,7 +21,7 @@ public interface Votation extends com.zeroc.Ice.Object
 
     void shutdown(com.zeroc.Ice.Current current);
 
-    void sendVote(String citizenId, String candidateId, com.zeroc.Ice.Current current)
+    String sendVote(String citizenId, String candidateId, com.zeroc.Ice.Current current)
         throws AlreadyVotedException;
 
     /** @hidden */
@@ -96,8 +96,11 @@ public interface Votation extends com.zeroc.Ice.Object
         iceP_citizenId = istr.readString();
         iceP_candidateId = istr.readString();
         inS.endReadParams();
-        obj.sendVote(iceP_citizenId, iceP_candidateId, current);
-        return inS.setResult(inS.writeEmptyParams());
+        String ret = obj.sendVote(iceP_citizenId, iceP_candidateId, current);
+        com.zeroc.Ice.OutputStream ostr = inS.startWriteParams();
+        ostr.writeString(ret);
+        inS.endWriteParams(ostr);
+        return inS.setResult(ostr);
     }
 
     /** @hidden */

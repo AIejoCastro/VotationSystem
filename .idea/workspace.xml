@@ -5,22 +5,23 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="24301e38-80d3-47e0-8e0d-97d4c3d83b83" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/modules/reliableMessaging/VotationSystem.reliableMessaging.main.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/reliableMessaging/src/main/java/OfflineVoteQueue.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/reliableMessaging/src/main/java/VoteRetryWorker.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules/votingMachine/VotationSystem.votingMachine.main.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-1/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-1/config/config" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-1/revision" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-1/revision" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-2/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-2/config/config" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-2/revision" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-2/revision" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-3/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-3/config/config" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-3/revision" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-3/revision" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/registry/data.mdb" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/registry/data.mdb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/votes.csv" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/votes.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reliableMessaging/src/main/resources/config.reliableMessaging" beforeDir="false" afterPath="$PROJECT_DIR$/reliableMessaging/src/main/resources/config.reliableMessaging" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/settings.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/votingSite/src/main/java/OfflineVoteQueue.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/votingSite/src/main/java/VoteRetryWorker.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/votingSite/src/main/java/VotingSite.java" beforeDir="false" afterPath="$PROJECT_DIR$/votingSite/src/main/java/VotingSite.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/votingSite/src/main/resources/config.votingSite" beforeDir="false" afterPath="$PROJECT_DIR$/votingSite/src/main/resources/config.votingSite" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -133,7 +134,7 @@
       <workItem from="1748557313602" duration="751000" />
       <workItem from="1748558321638" duration="1973000" />
       <workItem from="1748560393810" duration="544000" />
-      <workItem from="1748655359096" duration="5879000" />
+      <workItem from="1748655359096" duration="13646000" />
     </task>
     <servers />
   </component>

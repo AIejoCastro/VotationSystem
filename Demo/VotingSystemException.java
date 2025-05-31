@@ -15,43 +15,43 @@
 
 package Demo;
 
-public class AlreadyVotedException extends com.zeroc.Ice.UserException
+public class VotingSystemException extends com.zeroc.Ice.UserException
 {
-    public AlreadyVotedException()
+    public VotingSystemException()
     {
-        this.ackId = "";
+        this.reason = "";
     }
 
-    public AlreadyVotedException(Throwable cause)
+    public VotingSystemException(Throwable cause)
     {
         super(cause);
-        this.ackId = "";
+        this.reason = "";
     }
 
-    public AlreadyVotedException(String ackId)
+    public VotingSystemException(String reason)
     {
-        this.ackId = ackId;
+        this.reason = reason;
     }
 
-    public AlreadyVotedException(String ackId, Throwable cause)
+    public VotingSystemException(String reason, Throwable cause)
     {
         super(cause);
-        this.ackId = ackId;
+        this.reason = reason;
     }
 
     public String ice_id()
     {
-        return "::Demo::AlreadyVotedException";
+        return "::Demo::VotingSystemException";
     }
 
-    public String ackId;
+    public String reason;
 
     /** @hidden */
     @Override
     protected void _writeImpl(com.zeroc.Ice.OutputStream ostr_)
     {
-        ostr_.startSlice("::Demo::AlreadyVotedException", -1, true);
-        ostr_.writeString(ackId);
+        ostr_.startSlice("::Demo::VotingSystemException", -1, true);
+        ostr_.writeString(reason);
         ostr_.endSlice();
     }
 
@@ -60,10 +60,10 @@ public class AlreadyVotedException extends com.zeroc.Ice.UserException
     protected void _readImpl(com.zeroc.Ice.InputStream istr_)
     {
         istr_.startSlice();
-        ackId = istr_.readString();
+        reason = istr_.readString();
         istr_.endSlice();
     }
 
     /** @hidden */
-    public static final long serialVersionUID = -7856899813602863722L;
+    public static final long serialVersionUID = -8507700272068258476L;
 }
