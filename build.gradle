@@ -42,6 +42,11 @@ subprojects {
     dependencies {
         implementation 'com.zeroc:ice:3.7.10'
         implementation 'com.zeroc:icegrid:3.7.10'
+
+        // Dependencia específica para votingSite
+        if (project.name == 'votingSite') {
+            implementation project(':reliableMessaging')
+        }
     }
 
     //
@@ -49,10 +54,17 @@ subprojects {
     //
     jar {
         manifest {
-            attributes(
-                    "Main-Class": project.name.capitalize(),
-                    "Class-Path": configurations.runtimeClasspath.resolve().collect { it.toURI() }.join(' ')
-            )
+            if (project.name == 'reliableMessaging') {
+                attributes(
+                        "Main-Class": "ReliableMessagingService",
+                        "Class-Path": configurations.runtimeClasspath.resolve().collect { it.toURI() }.join(' ')
+                )
+            } else {
+                attributes(
+                        "Main-Class": project.name.capitalize(),
+                        "Class-Path": configurations.runtimeClasspath.resolve().collect { it.toURI() }.join(' ')
+                )
+            }
         }
     }
 }
