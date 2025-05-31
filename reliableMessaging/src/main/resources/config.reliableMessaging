@@ -12,9 +12,6 @@ ReliableMessaging.ACKFilePath=config/db/vote-acks.log
 # Habilitar logs detallados (1=sí, 0=no)
 ReliableMessaging.VerboseLogging=1
 
-# ELIMINADO: ReliableMessaging.MaxRetries
-# Razón: Ahora garantiza entrega SIN LÍMITES cuando hay votos pendientes
-
 # Configuración de IceGrid
 Ice.Default.Locator=DemoIceGrid/Locator:default -h localhost -p 4061
 IceGrid.InstanceName=DemoIceGrid

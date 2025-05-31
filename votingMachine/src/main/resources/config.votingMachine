@@ -1,0 +1,17 @@
+# Configuración de la Máquina de Votación
+
+# Identificación de la máquina
+VotingMachine.ID=VM-001
+VotingMachine.Location=Centro de Votación Plaza Principal
+
+# Configuración de conexión al VotingSite (Ice)
+VotingSite.Host=localhost
+VotingSite.Port=9090
+VotingSite.Timeout=10000
+
+# Configuración de logging
+VotingMachine.VerboseLogging=true
+
+# Configuración de la interfaz
+VotingMachine.Language=es
+VotingMachine.Theme=default
