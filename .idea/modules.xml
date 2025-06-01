@@ -2,8 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/reliableMessaging/VotationSystem.reliableMessaging.main.iml" filepath="$PROJECT_DIR$/.idea/modules/reliableMessaging/VotationSystem.reliableMessaging.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/testFramework/VotationSystem.testFramework.main.iml" filepath="$PROJECT_DIR$/.idea/modules/testFramework/VotationSystem.testFramework.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/user/VotationSystem.user.main.iml" filepath="$PROJECT_DIR$/.idea/modules/user/VotationSystem.user.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/user/VotationSystem.user.test.iml" filepath="$PROJECT_DIR$/.idea/modules/user/VotationSystem.user.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/votingMachine/VotationSystem.votingMachine.main.iml" filepath="$PROJECT_DIR$/.idea/modules/votingMachine/VotationSystem.votingMachine.main.iml" />
     </modules>
   </component>
 </project>

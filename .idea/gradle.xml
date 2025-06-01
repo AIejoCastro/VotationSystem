@@ -10,6 +10,7 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/departmentalServer" />
             <option value="$PROJECT_DIR$/reliableMessaging" />
+            <option value="$PROJECT_DIR$/testFramework" />
             <option value="$PROJECT_DIR$/votingMachine" />
             <option value="$PROJECT_DIR$/votingSite" />
           </set>

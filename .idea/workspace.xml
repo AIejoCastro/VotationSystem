@@ -5,16 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="24301e38-80d3-47e0-8e0d-97d4c3d83b83" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-1/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-1/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-1/revision" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-1/revision" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-1/revision" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-2/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-2/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-2/revision" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-2/revision" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-2/revision" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-3/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-3/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-3/revision" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-3/revision" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-3/revision" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/registry/data.mdb" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/registry/data.mdb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/vote-acks.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/votes.csv" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/settings.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/settings.gradle" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -69,29 +70,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Gradle.VotationSystem.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.VotationSystem:user [:user:StressTest.main()].executor&quot;: &quot;Debug&quot;,
-    &quot;Gradle.VotationSystem:user [:user:User.main()].executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/alejandrocastro/Documents/Universidad/Decimo Semestre/Ingenieria de Software IV/Proyecto/VotationSystem/config&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Gradle.VotationSystem.executor": "Run",
+    "Gradle.VotationSystem:user [:user:StressTest.main()].executor": "Debug",
+    "Gradle.VotationSystem:user [:user:User.main()].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "test",
+    "last_opened_file_path": "/Users/alejandrocastro/Documents/Universidad/Decimo Semestre/Ingenieria de Software IV/Proyecto/VotationSystem/config",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "preferences.lookFeel",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/config" />
@@ -129,7 +130,7 @@
       <workItem from="1748560393810" duration="544000" />
       <workItem from="1748655359096" duration="13933000" />
       <workItem from="1748710394147" duration="187000" />
-      <workItem from="1748793871230" duration="3180000" />
+      <workItem from="1748793871230" duration="4916000" />
     </task>
     <servers />
   </component>
