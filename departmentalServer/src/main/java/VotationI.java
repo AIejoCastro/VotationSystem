@@ -11,6 +11,8 @@ import java.time.format.DateTimeFormatter;
 public class VotationI implements Votation
 {
     private final String _name;
+
+    // Mapa para almacenar ACKs de votos (incluyendo duplicados)
     private static final ConcurrentHashMap<String, String> voteACKs = new ConcurrentHashMap<>();
     private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
@@ -39,38 +41,52 @@ public class VotationI implements Votation
 
         System.out.println("[" + timestamp + "] [" + _name + "] Voto recibido: " + citizenId + " -> " + candidateId);
 
-        // Verificar si ya existe un ACK para este voto
-        String existingACK = voteACKs.get(voteKey);
-        if (existingACK != null) {
-            System.out.println("[" + timestamp + "] [" + _name + "] DUPLICADO detectado - Retornando ACK existente: " + existingACK);
+        // Verificar si ya existe un ACK para esta combinación exacta
+        String exactMatchACK = voteACKs.get(voteKey);
+        if (exactMatchACK != null) {
+            System.out.println("[" + timestamp + "] [" + _name + "] DUPLICADO EXACTO - Retornando ACK: " + exactMatchACK);
             AlreadyVotedException ex = new AlreadyVotedException();
-            ex.ackId = existingACK;
+            ex.ackId = exactMatchACK;
             throw ex;
         }
 
-        // Procesar voto con VoteManager
-        boolean success = VoteManager.getInstance().receiveVote(citizenId, candidateId);
-        if (!success) {
-            // Ya votó según VoteManager
-            existingACK = voteACKs.get(voteKey);
+        // Procesar voto con VoteManager (incluye validación de duplicados)
+        VoteManager.VoteResult result = VoteManager.getInstance().receiveVote(citizenId, candidateId);
+
+        if (!result.success) {
+            // El ciudadano ya votó (por este u otro candidato)
+            System.out.println("[" + timestamp + "] [" + _name + "] " + result.message);
+
+            // Buscar ACK existente para el voto original del ciudadano
+            String existingVoteKey = citizenId + "|" + result.candidateId;
+            String existingACK = voteACKs.get(existingVoteKey);
+
             if (existingACK == null) {
-                // Generar ACK para voto duplicado
-                existingACK = "ACK-DUP-" + UUID.randomUUID().toString().substring(0, 8);
-                voteACKs.put(voteKey, existingACK);
+                // Generar ACK para el voto original si no existe
+                existingACK = "ACK-ORIG-" + _name + "-" + UUID.randomUUID().toString().substring(0, 8);
+                voteACKs.put(existingVoteKey, existingACK);
+                System.out.println("[" + timestamp + "] [" + _name + "] ACK generado para voto original: " + existingACK);
             }
-            System.out.println("[" + timestamp + "] [" + _name + "] Ciudadano ya votó - ACK: " + existingACK);
+
             AlreadyVotedException ex = new AlreadyVotedException();
             ex.ackId = existingACK;
             throw ex;
         }
 
-        // Generar ACK único para voto exitoso
-        String ackId = "ACK-" + _name + "-" + UUID.randomUUID().toString().substring(0, 8);
+        // Voto exitoso - generar ACK único
+        String ackId = "ACK-NEW-" + _name + "-" + UUID.randomUUID().toString().substring(0, 8);
         voteACKs.put(voteKey, ackId);
 
-        System.out.println("[" + timestamp + "] [" + _name + "] Voto procesado exitosamente");
-        System.out.println("[" + timestamp + "] [" + _name + "] ACK generado: " + ackId);
+        System.out.println("[" + timestamp + "] [" + _name + "] ✅ Voto procesado exitosamente");
+        System.out.println("[" + timestamp + "] [" + _name + "] ✅ ACK generado: " + ackId);
 
         return ackId;
+    }
+
+    /**
+     * Método para obtener estadísticas (útil para debugging)
+     */
+    public VoteManager.VotingStats getVotingStats() {
+        return VoteManager.getInstance().getStats();
     }
 }
