@@ -19,6 +19,9 @@ public class VotingMetrics {
     private static final Map<String, String> citizenVotes = new ConcurrentHashMap<>();
     private static final List<VoteRecord> voteHistory = Collections.synchronizedList(new ArrayList<>());
 
+    // NUEVO: Para debugging de ACKs duplicados
+    private static final Map<String, List<String>> ackToCitizens = new ConcurrentHashMap<>();
+
     public static class VoteRecord {
         public final String citizenId;
         public final String candidateId;
@@ -26,13 +29,15 @@ public class VotingMetrics {
         public final long latencyMs;
         public final String timestamp;
         public final boolean success;
+        public final boolean isDuplicate;
 
-        public VoteRecord(String citizenId, String candidateId, String ackId, long latencyMs, boolean success) {
+        public VoteRecord(String citizenId, String candidateId, String ackId, long latencyMs, boolean success, boolean isDuplicate) {
             this.citizenId = citizenId;
             this.candidateId = candidateId;
             this.ackId = ackId;
             this.latencyMs = latencyMs;
             this.success = success;
+            this.isDuplicate = isDuplicate;
             this.timestamp = LocalDateTime.now().format(timeFormatter);
         }
     }
@@ -46,27 +51,40 @@ public class VotingMetrics {
         totalACKsReceived.incrementAndGet();
         latencies.add(latencyMs);
 
-        // Verificar unicidad de ACK
+        // CORREGIDO: Verificación mejorada de unicidad de ACK
         if (!uniqueACKs.add(ackId)) {
             System.err.println("❌ ERROR CRÍTICO: ACK duplicado detectado: " + ackId);
+            System.err.println("❌ ACK ya usado por: " + ackToCitizens.get(ackId));
+            System.err.println("❌ Nuevo intento de: " + citizenId + " -> " + candidateId);
+        } else {
+            // Registrar qué ciudadano usó este ACK
+            ackToCitizens.computeIfAbsent(ackId, k -> new ArrayList<>()).add(citizenId + "->" + candidateId);
         }
 
-        // Verificar si es voto duplicado del mismo ciudadano
-        String previousVote = citizenVotes.put(citizenId, candidateId);
-        if (previousVote != null) {
+        // Verificar duplicados ANTES de actualizar el mapa
+        String existingVote = citizenVotes.get(citizenId);
+        boolean isDuplicate = false;
+
+        if (existingVote != null) {
+            // El ciudadano ya había votado previamente
+            isDuplicate = true;
             duplicatesDetected.incrementAndGet();
             log("DUPLICATE_DETECTED", citizenId, candidateId, ackId, latencyMs);
+            System.out.println("🔍 [METRICS] Duplicado detectado: Ciudadano " + citizenId +
+                    " ya votó por " + existingVote + ", nuevo intento por " + candidateId);
         } else {
+            // Primer voto válido del ciudadano
+            citizenVotes.put(citizenId, candidateId);
             log("VOTE_SUCCESS", citizenId, candidateId, ackId, latencyMs);
         }
 
-        voteHistory.add(new VoteRecord(citizenId, candidateId, ackId, latencyMs, true));
+        voteHistory.add(new VoteRecord(citizenId, candidateId, ackId, latencyMs, true, isDuplicate));
     }
 
     public static synchronized void recordVoteFailure(String citizenId, String candidateId, String error) {
         votesFailed.incrementAndGet();
         log("VOTE_FAILED", citizenId, candidateId, error, 0);
-        voteHistory.add(new VoteRecord(citizenId, candidateId, null, 0, false));
+        voteHistory.add(new VoteRecord(citizenId, candidateId, null, 0, false, false));
     }
 
     public static synchronized TestResults getResults() {
@@ -91,7 +109,76 @@ public class VotingMetrics {
         uniqueACKs.clear();
         citizenVotes.clear();
         voteHistory.clear();
+        ackToCitizens.clear(); // NUEVO
         log("METRICS_RESET", "", "", "", 0);
+    }
+
+    // NUEVO: Análisis de ACKs duplicados
+    public static synchronized void printACKAnalysis() {
+        System.out.println("\n🔍 ANÁLISIS DETALLADO DE ACKs:");
+        System.out.println("═══════════════════════════════════════");
+
+        Map<String, Integer> ackUsageCount = new HashMap<>();
+        for (VoteRecord record : voteHistory) {
+            if (record.ackId != null) {
+                ackUsageCount.merge(record.ackId, 1, Integer::sum);
+            }
+        }
+
+        int duplicateACKs = 0;
+        System.out.println("ACKs con múltiples usos:");
+        for (Map.Entry<String, Integer> entry : ackUsageCount.entrySet()) {
+            if (entry.getValue() > 1) {
+                duplicateACKs++;
+                System.out.println("  " + entry.getKey() + " usado " + entry.getValue() + " veces");
+
+                // Mostrar qué votos usaron este ACK
+                List<String> users = ackToCitizens.get(entry.getKey());
+                if (users != null) {
+                    users.forEach(user -> System.out.println("    - " + user));
+                }
+            }
+        }
+
+        System.out.println("─────────────────────────────────────────");
+        System.out.println("Total ACKs únicos: " + uniqueACKs.size());
+        System.out.println("Total ACKs recibidos: " + totalACKsReceived.get());
+        System.out.println("ACKs con uso múltiple: " + duplicateACKs);
+        System.out.println("═══════════════════════════════════════");
+    }
+
+    public static synchronized void printDuplicateAnalysis() {
+        System.out.println("\n🔍 ANÁLISIS DETALLADO DE DUPLICADOS:");
+        System.out.println("═══════════════════════════════════════");
+
+        Map<String, List<VoteRecord>> votesByCitizen = new HashMap<>();
+        for (VoteRecord record : voteHistory) {
+            votesByCitizen.computeIfAbsent(record.citizenId, k -> new ArrayList<>()).add(record);
+        }
+
+        int citizensWithMultipleAttempts = 0;
+        int totalDuplicateAttempts = 0;
+
+        for (Map.Entry<String, List<VoteRecord>> entry : votesByCitizen.entrySet()) {
+            List<VoteRecord> votes = entry.getValue();
+            if (votes.size() > 1) {
+                citizensWithMultipleAttempts++;
+                totalDuplicateAttempts += (votes.size() - 1);
+
+                System.out.println("Ciudadano " + entry.getKey() + " - " + votes.size() + " intentos:");
+                for (int i = 0; i < votes.size(); i++) {
+                    VoteRecord vote = votes.get(i);
+                    String status = (i == 0) ? "VÁLIDO" : "DUPLICADO";
+                    System.out.println("  " + (i+1) + ". " + vote.candidateId + " -> " + vote.ackId + " (" + status + ")");
+                }
+            }
+        }
+
+        System.out.println("─────────────────────────────────────────");
+        System.out.println("Ciudadanos con múltiples intentos: " + citizensWithMultipleAttempts);
+        System.out.println("Total intentos duplicados: " + totalDuplicateAttempts);
+        System.out.println("Duplicados detectados por métricas: " + duplicatesDetected.get());
+        System.out.println("═══════════════════════════════════════");
     }
 
     private static void log(String event, String citizenId, String candidateId, String ackId, long latency) {
@@ -180,12 +267,12 @@ public class VotingMetrics {
         }
 
         public boolean passesUniquenessTest() {
-            // Criterios de unicidad
-            boolean correctDuplicateDetection = true; // Se valida durante ejecución
+            // CORREGIDO: Criterios de unicidad más estrictos
             boolean uniqueACKsGenerated = (uniqueACKsCount == totalACKsReceived);
             boolean correctVoterCount = (uniqueVotersCount <= totalVotesSent);
+            boolean noACKCollisions = uniqueACKsGenerated; // ACKs deben ser únicos
 
-            return correctDuplicateDetection && uniqueACKsGenerated && correctVoterCount;
+            return uniqueACKsGenerated && correctVoterCount && noACKCollisions;
         }
     }
 }

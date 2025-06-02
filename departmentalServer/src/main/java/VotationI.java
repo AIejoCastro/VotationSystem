@@ -3,17 +3,12 @@
 //
 
 import Demo.*;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class VotationI implements Votation
 {
     private final String _name;
-
-    // Mapa para almacenar ACKs de votos (incluyendo duplicados)
-    private static final ConcurrentHashMap<String, String> voteACKs = new ConcurrentHashMap<>();
     private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
     public VotationI(String name)
@@ -35,52 +30,75 @@ public class VotationI implements Votation
     }
 
     @Override
-    public String sendVote(String citizenId, String candidateId, com.zeroc.Ice.Current current) throws AlreadyVotedException {
+    public synchronized String sendVote(String citizenId, String candidateId, com.zeroc.Ice.Current current) throws AlreadyVotedException {
         String timestamp = LocalDateTime.now().format(timeFormatter);
-        String voteKey = citizenId + "|" + candidateId;
 
         System.out.println("[" + timestamp + "] [" + _name + "] Voto recibido: " + citizenId + " -> " + candidateId);
 
-        // Verificar si ya existe un ACK para esta combinación exacta
-        String exactMatchACK = voteACKs.get(voteKey);
-        if (exactMatchACK != null) {
-            System.out.println("[" + timestamp + "] [" + _name + "] DUPLICADO EXACTO - Retornando ACK: " + exactMatchACK);
-            AlreadyVotedException ex = new AlreadyVotedException();
-            ex.ackId = exactMatchACK;
-            throw ex;
-        }
+        // PASO 1: Verificar con ACKManager centralizado si el ciudadano ya tiene ACK
+        ACKManager ackManager = ACKManager.getInstance();
+        String existingACK = ackManager.getACK(citizenId);
 
-        // Procesar voto con VoteManager (incluye validación de duplicados)
-        VoteManager.VoteResult result = VoteManager.getInstance().receiveVote(citizenId, candidateId);
-
-        if (!result.success) {
-            // El ciudadano ya votó (por este u otro candidato)
-            System.out.println("[" + timestamp + "] [" + _name + "] " + result.message);
-
-            // Buscar ACK existente para el voto original del ciudadano
-            String existingVoteKey = citizenId + "|" + result.candidateId;
-            String existingACK = voteACKs.get(existingVoteKey);
-
-            if (existingACK == null) {
-                // Generar ACK para el voto original si no existe
-                existingACK = "ACK-ORIG-" + _name + "-" + UUID.randomUUID().toString().substring(0, 8);
-                voteACKs.put(existingVoteKey, existingACK);
-                System.out.println("[" + timestamp + "] [" + _name + "] ACK generado para voto original: " + existingACK);
-            }
-
+        if (existingACK != null) {
+            // El ciudadano ya tiene un ACK - SIEMPRE retornar el mismo
+            System.out.println("[" + timestamp + "] [" + _name + "] CIUDADANO CONOCIDO - ACK centralizado: " + existingACK);
             AlreadyVotedException ex = new AlreadyVotedException();
             ex.ackId = existingACK;
             throw ex;
         }
 
-        // Voto exitoso - generar ACK único
-        String ackId = "ACK-NEW-" + _name + "-" + UUID.randomUUID().toString().substring(0, 8);
-        voteACKs.put(voteKey, ackId);
+        // PASO 2: Verificar con VoteManager si es un voto válido
+        VoteManager.VoteResult result = VoteManager.getInstance().receiveVote(citizenId, candidateId);
 
-        System.out.println("[" + timestamp + "] [" + _name + "] ✅ Voto procesado exitosamente");
-        System.out.println("[" + timestamp + "] [" + _name + "] ✅ ACK generado: " + ackId);
+        if (result.success) {
+            // PASO 3A: Voto válido - obtener ACK único del ACKManager centralizado
+            String ackId = ackManager.getOrCreateACK(citizenId, _name);
 
-        return ackId;
+            System.out.println("[" + timestamp + "] [" + _name + "] ✅ PRIMER VOTO VÁLIDO - ACK centralizado: " + ackId);
+            return ackId;
+
+        } else {
+            // PASO 3B: Voto duplicado según VoteManager - obtener ACK del ciudadano
+            System.out.println("[" + timestamp + "] [" + _name + "] " + result.message);
+
+            // Obtener o generar ACK centralizado para este ciudadano
+            String ackId = ackManager.getOrCreateACK(citizenId, _name);
+
+            System.out.println("[" + timestamp + "] [" + _name + "] ✅ VOTO DUPLICADO - ACK centralizado: " + ackId);
+
+            AlreadyVotedException ex = new AlreadyVotedException();
+            ex.ackId = ackId;
+            throw ex;
+        }
+    }
+
+    /**
+     * Método para debugging
+     */
+    public void printACKDebugInfo() {
+        ACKManager.getInstance().printDebugInfo();
+    }
+
+    /**
+     * Verificar si un ciudadano tiene ACK (usando ACKManager centralizado)
+     */
+    public boolean hasACK(String citizenId) {
+        return ACKManager.getInstance().hasACK(citizenId);
+    }
+
+    /**
+     * Obtener ACK de un ciudadano (usando ACKManager centralizado)
+     */
+    public String getACK(String citizenId) {
+        return ACKManager.getInstance().getACK(citizenId);
+    }
+
+    /**
+     * Limpiar estado para testing
+     */
+    public static void clearACKState() {
+        ACKManager.getInstance().clearForTesting();
+        System.out.println("[VotationI] Estado de ACKs centralizados limpiado para testing");
     }
 
     /**
