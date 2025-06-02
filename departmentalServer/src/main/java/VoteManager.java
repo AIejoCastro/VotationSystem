@@ -5,7 +5,7 @@ import java.util.concurrent.*;
 public class VoteManager {
     private static final VoteManager instance = new VoteManager();
 
-    // CORREGIDO: Sincronización mejorada para evitar race conditions
+    // Sincronización mejorada para evitar race conditions
     private final Map<String, String> citizenVotes = new ConcurrentHashMap<>(); // ciudadano -> candidato
     private final BlockingQueue<VoteCommand> queue = new LinkedBlockingQueue<>();
 
@@ -20,13 +20,13 @@ public class VoteManager {
     }
 
     /**
-     * CORREGIDO: Recibe un voto y valida duplicados con sincronización estricta
+     * Recibe un voto y valida duplicados con sincronización estricta
      * @param citizenId ID del ciudadano
      * @param candidateId ID del candidato
      * @return VoteResult con información del resultado
      */
     public synchronized VoteResult receiveVote(String citizenId, String candidateId) {
-        // CRÍTICO: Este método debe ser completamente sincronizado para evitar race conditions
+        // CRÍTICO: Este metodo debe ser completamente sincronizado para evitar race conditions
 
         // Verificar si el ciudadano ya votó
         String existingVote = citizenVotes.get(citizenId);

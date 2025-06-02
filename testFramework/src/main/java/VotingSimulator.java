@@ -34,7 +34,7 @@ public class VotingSimulator {
     }
 
     public void simulateConcurrentVoting(int voterCount, VotingProxyPrx proxy) {
-        System.out.println("🚀 Iniciando simulación de " + voterCount + " votantes concurrentes");
+        System.out.println("Iniciando simulación de " + voterCount + " votantes concurrentes");
 
         CompletableFuture<Void>[] futures = new CompletableFuture[voterCount];
 
@@ -48,19 +48,19 @@ public class VotingSimulator {
 
         // Esperar a que todos terminen
         CompletableFuture.allOf(futures).join();
-        System.out.println("✅ Simulación de votantes concurrentes completada");
+        System.out.println("Simulación de votantes concurrentes completada");
     }
 
-    // MÉTODO CORREGIDO: Ahora espera que cada grupo de votos se procese completamente
+    // Ahora espera que cada grupo de votos se procese completamente
     public void simulateDuplicateVoting(int citizenCount, VotingProxyPrx proxy) {
-        System.out.println("🔄 Iniciando simulación de votos duplicados para " + citizenCount + " ciudadanos");
+        System.out.println("Iniciando simulación de votos duplicados para " + citizenCount + " ciudadanos");
 
         List<CompletableFuture<Void>> allVotes = new ArrayList<>();
 
         for (int i = 0; i < citizenCount; i++) {
             String citizenId = String.format("citizen%05d", i + 1);
 
-            System.out.println("📤 Procesando ciudadano: " + citizenId);
+            System.out.println("Procesando ciudadano: " + citizenId);
 
             // Primer voto (válido) - candidate001
             CompletableFuture<Void> vote1 = simulateVoter(citizenId, "candidate001", proxy, 0);
@@ -78,7 +78,7 @@ public class VotingSimulator {
             if ((i + 1) % 10 == 0) {
                 try {
                     Thread.sleep(1000);
-                    System.out.println("⏳ Procesados " + (i + 1) + " ciudadanos hasta ahora...");
+                    System.out.println("Procesados " + (i + 1) + " ciudadanos hasta ahora...");
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
@@ -86,7 +86,7 @@ public class VotingSimulator {
         }
 
         // Esperar a que TODOS los votos terminen de procesarse
-        System.out.println("⏳ Esperando que todos los votos se procesen...");
+        System.out.println("Esperando que todos los votos se procesen...");
         CompletableFuture.allOf(allVotes.toArray(new CompletableFuture[0])).join();
 
         // Tiempo adicional para que el sistema procese las respuestas
@@ -96,11 +96,11 @@ public class VotingSimulator {
             Thread.currentThread().interrupt();
         }
 
-        System.out.println("✅ Simulación de votos duplicados completada");
+        System.out.println("Simulación de votos duplicados completada");
 
         // Debug: Mostrar estado actual
         VotingMetrics.TestResults currentResults = VotingMetrics.getResults();
-        System.out.println("📊 Resultados parciales:");
+        System.out.println("   Resultados parciales:");
         System.out.println("   Votos enviados: " + currentResults.totalVotesSent);
         System.out.println("   ACKs recibidos: " + currentResults.totalACKsReceived);
         System.out.println("   Duplicados detectados: " + currentResults.duplicatesDetected);

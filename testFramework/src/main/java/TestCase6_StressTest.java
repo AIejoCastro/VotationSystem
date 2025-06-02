@@ -6,7 +6,7 @@ import java.util.concurrent.CompletableFuture;
 public class TestCase6_StressTest {
 
     public static boolean runTest() {
-        System.out.println("\n🧪 CASO 6: STRESS TEST DE CONCURRENCIA");
+        System.out.println("\nCASO 6: STRESS TEST DE CONCURRENCIA");
         System.out.println("═══════════════════════════════════════════════");
 
         VotingMetrics.reset();
@@ -19,12 +19,12 @@ public class TestCase6_StressTest {
             );
 
             if (proxy == null) {
-                System.err.println("❌ No se pudo conectar al VotingSite");
+                System.err.println("No se pudo conectar al VotingSite");
                 return false;
             }
 
-            System.out.println("🚀 Iniciando stress test con 500 votantes simultáneos");
-            System.out.println("⚡ Votación en burst intenso durante 2 minutos");
+            System.out.println("Iniciando stress test con 500 votantes simultáneos");
+            System.out.println("Votación en burst intenso durante 2 minutos");
 
             VotingSimulator simulator = new VotingSimulator(50); // Pool más grande para stress
 
@@ -53,7 +53,7 @@ public class TestCase6_StressTest {
                 long elapsedTime = System.currentTimeMillis() - stressTestStart;
                 double currentThroughput = (double) progressResults.totalACKsReceived / elapsedTime * 1000;
 
-                System.out.println("📊 Progreso (" + (elapsedTime / 1000) + "s): " +
+                System.out.println("Progreso (" + (elapsedTime / 1000) + "s): " +
                         progressResults.totalACKsReceived + "/500 votos | " +
                         String.format("%.2f", currentThroughput) + " votos/seg | " +
                         String.format("%.2f", progressResults.avgLatency) + "ms promedio");
@@ -64,7 +64,7 @@ public class TestCase6_StressTest {
 
             long votingPhaseTime = System.currentTimeMillis() - stressTestStart;
 
-            System.out.println("⏳ Fase de votación completada. Esperando procesamiento final...");
+            System.out.println("Fase de votación completada. Esperando procesamiento final...");
             Thread.sleep(15000);
 
             simulator.shutdown();
@@ -79,7 +79,7 @@ public class TestCase6_StressTest {
             double overallThroughput = (double) stressResults.totalACKsReceived / totalStressTime * 1000;
             double votingPhaseThroughput = (double) stressResults.totalACKsReceived / votingPhaseTime * 1000;
 
-            System.out.println("\n📈 MÉTRICAS DE RENDIMIENTO:");
+            System.out.println("\nMÉTRICAS DE RENDIMIENTO:");
             System.out.println("Tiempo de votación:       " + (votingPhaseTime / 1000) + " segundos");
             System.out.println("Tiempo total:             " + (totalStressTime / 1000) + " segundos");
             System.out.println("Throughput de votación:   " + String.format("%.2f", votingPhaseThroughput) + " votos/segundo");
@@ -96,27 +96,27 @@ public class TestCase6_StressTest {
             boolean integrityOK = stressResults.passesUniquenessTest();
             boolean mostVotesProcessed = stressResults.totalACKsReceived >= 475; // Al menos 95% procesados
 
-            System.out.println("\n📋 EVALUACIÓN DE CRITERIOS:");
-            System.out.println("Tasa de éxito ≥ 95%:      " + (highSuccessRate ? "✅" : "❌") + " (" + String.format("%.2f%%", stressResults.successRate) + ")");
-            System.out.println("Latencia P95 ≤ 5s:        " + (acceptableLatency ? "✅" : "❌") + " (" + stressResults.p95Latency + "ms)");
-            System.out.println("Latencia máx ≤ 10s:       " + (maxLatencyOK ? "✅" : "❌") + " (" + stressResults.maxLatency + "ms)");
-            System.out.println("Throughput ≥ 5 v/s:       " + (goodThroughput ? "✅" : "❌") + " (" + String.format("%.2f", overallThroughput) + " v/s)");
-            System.out.println("Integridad mantenida:     " + (integrityOK ? "✅" : "❌"));
-            System.out.println("Votos procesados ≥ 95%:   " + (mostVotesProcessed ? "✅" : "❌") + " (" + stressResults.totalACKsReceived + "/500)");
+            System.out.println("\nEVALUACIÓN DE CRITERIOS:");
+            System.out.println("Tasa de éxito ≥ 95%:      " + (highSuccessRate ? "Bien" : "Mal") + " (" + String.format("%.2f%%", stressResults.successRate) + ")");
+            System.out.println("Latencia P95 ≤ 5s:        " + (acceptableLatency ? "Bien" : "Mal") + " (" + stressResults.p95Latency + "ms)");
+            System.out.println("Latencia máx ≤ 10s:       " + (maxLatencyOK ? "Bien" : "Mal") + " (" + stressResults.maxLatency + "ms)");
+            System.out.println("Throughput ≥ 5 v/s:       " + (goodThroughput ? "Bien" : "Mal") + " (" + String.format("%.2f", overallThroughput) + " v/s)");
+            System.out.println("Integridad mantenida:     " + (integrityOK ? "Bien" : "Mal"));
+            System.out.println("Votos procesados ≥ 95%:   " + (mostVotesProcessed ? "Bien" : "Mal") + " (" + stressResults.totalACKsReceived + "/500)");
 
             boolean success = highSuccessRate && acceptableLatency && maxLatencyOK &&
                     goodThroughput && integrityOK && mostVotesProcessed;
 
             if (success) {
-                System.out.println("\n✅ CASO 6: EXITOSO - Sistema soporta carga de stress correctamente");
+                System.out.println("\nCASO 6: EXITOSO - Sistema soporta carga de stress correctamente");
             } else {
-                System.out.println("\n❌ CASO 6: FALLIDO - Sistema no soporta la carga de stress");
+                System.out.println("\nCASO 6: FALLIDO - Sistema no soporta la carga de stress");
             }
 
             return success;
 
         } catch (Exception e) {
-            System.err.println("❌ Error ejecutando Caso 6: " + e.getMessage());
+            System.err.println("Error ejecutando Caso 6: " + e.getMessage());
             e.printStackTrace();
             return false;
         }

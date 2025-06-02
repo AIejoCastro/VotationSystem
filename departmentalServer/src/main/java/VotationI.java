@@ -54,7 +54,7 @@ public class VotationI implements Votation
             // PASO 3A: Voto válido - obtener ACK único del ACKManager centralizado
             String ackId = ackManager.getOrCreateACK(citizenId, _name);
 
-            System.out.println("[" + timestamp + "] [" + _name + "] ✅ PRIMER VOTO VÁLIDO - ACK centralizado: " + ackId);
+            System.out.println("[" + timestamp + "] [" + _name + "] PRIMER VOTO VÁLIDO - ACK centralizado: " + ackId);
             return ackId;
 
         } else {
@@ -64,7 +64,7 @@ public class VotationI implements Votation
             // Obtener o generar ACK centralizado para este ciudadano
             String ackId = ackManager.getOrCreateACK(citizenId, _name);
 
-            System.out.println("[" + timestamp + "] [" + _name + "] ✅ VOTO DUPLICADO - ACK centralizado: " + ackId);
+            System.out.println("[" + timestamp + "] [" + _name + "] VOTO DUPLICADO - ACK centralizado: " + ackId);
 
             AlreadyVotedException ex = new AlreadyVotedException();
             ex.ackId = ackId;
@@ -73,7 +73,7 @@ public class VotationI implements Votation
     }
 
     /**
-     * Método para debugging
+     * Metodo para debugging
      */
     public void printACKDebugInfo() {
         ACKManager.getInstance().printDebugInfo();
@@ -102,7 +102,7 @@ public class VotationI implements Votation
     }
 
     /**
-     * Método para obtener estadísticas (útil para debugging)
+     * Metodo para obtener estadísticas (útil para debugging)
      */
     public VoteManager.VotingStats getVotingStats() {
         return VoteManager.getInstance().getStats();

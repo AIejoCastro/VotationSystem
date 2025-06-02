@@ -6,14 +6,14 @@ import java.util.concurrent.*;
 public class TestCase2_Duplicates {
 
     public static boolean runTest() {
-        System.out.println("\n🧪 CASO 2 STRESS: DETECCIÓN DE DUPLICADOS MASIVA");
+        System.out.println("\nCASO 2 STRESS: DETECCIÓN DE DUPLICADOS");
         System.out.println("══════════════════════════════════════════════════════════════");
-        System.out.println("🎯 OBJETIVO: Validar ACKManager bajo condiciones extremas");
-        System.out.println("📊 ESCALA: 100 ciudadanos, 10 intentos cada uno = 1000 votos totales");
-        System.out.println("🔥 CONCURRENCIA: Múltiples threads simultáneos");
-        System.out.println("🎲 PATRONES: Aleatorios y determinísticos");
+        System.out.println("OBJETIVO: Validar ACKManager bajo condiciones extremas");
+        System.out.println("ESCALA: 100 ciudadanos, 10 intentos cada uno = 1000 votos totales");
+        System.out.println("CONCURRENCIA: Múltiples threads simultáneos");
+        System.out.println("PATRONES: Aleatorios y determinísticos");
 
-        // CRÍTICO: Limpiar estado antes de empezar
+        // Limpiar estado antes de empezar
         VotingMetrics.reset();
 
         // Limpiar estado centralizado de ACKs
@@ -21,9 +21,9 @@ public class TestCase2_Duplicates {
             Class<?> votationClass = Class.forName("VotationI");
             java.lang.reflect.Method clearMethod = votationClass.getMethod("clearACKState");
             clearMethod.invoke(null);
-            System.out.println("🧹 Estado de ACKs centralizados limpiado para stress test");
+            System.out.println("Estado de ACKs centralizados limpiado para stress test");
         } catch (Exception e) {
-            System.out.println("⚠️  No se pudo limpiar estado anterior: " + e.getMessage());
+            System.out.println("No se pudo limpiar estado anterior: " + e.getMessage());
         }
 
         try (com.zeroc.Ice.Communicator communicator = com.zeroc.Ice.Util.initialize()) {
@@ -34,7 +34,7 @@ public class TestCase2_Duplicates {
             );
 
             if (proxy == null) {
-                System.err.println("❌ No se pudo conectar al VotingSite");
+                System.err.println("No se pudo conectar al VotingSite");
                 return false;
             }
 
@@ -49,7 +49,7 @@ public class TestCase2_Duplicates {
             long totalTime = System.currentTimeMillis() - startTime;
 
             // Esperar procesamiento completo
-            System.out.println("⏳ Esperando procesamiento final completo...");
+            System.out.println("Esperando procesamiento final completo...");
             Thread.sleep(5000);
 
             // Analizar resultados finales
@@ -57,7 +57,7 @@ public class TestCase2_Duplicates {
 
             printStressTestAnalysis(results);
 
-            System.out.println("\n⏱️  Tiempo total del stress test: " + (totalTime / 1000) + " segundos");
+            System.out.println("\nTiempo total del stress test: " + (totalTime / 1000) + " segundos");
 
             // Criterios de éxito para stress test
             int expectedUniqueCitizens = 100;       // 100 ciudadanos únicos total
@@ -74,15 +74,15 @@ public class TestCase2_Duplicates {
             boolean phase1Success = phase1;
             boolean phase2Success = phase2;
 
-            System.out.println("\n📊 ANÁLISIS FINAL DE STRESS TEST:");
+            System.out.println("\nANÁLISIS FINAL DE STRESS TEST:");
             System.out.println("═══════════════════════════════════════════════════════════════");
-            System.out.println("Ciudadanos únicos:        " + expectedUniqueCitizens + " | Actual: " + results.uniqueVotersCount + " " + (correctUniqueVoters ? "✅" : "❌"));
-            System.out.println("Intentos totales:         " + expectedTotalAttempts + " | Actual: " + results.totalVotesSent + " " + (correctTotalAttempts ? "✅" : "❌"));
-            System.out.println("ACKs recibidos:          ≥" + (int)(expectedTotalAttempts * 0.98) + " | Actual: " + results.totalACKsReceived + " " + (allAttemptsProcessed ? "✅" : "❌"));
-            System.out.println("Duplicados esperados:    ≥" + (int)(expectedDuplicates * 0.95) + " | Actual: " + results.duplicatesDetected + " " + (duplicateDetectionWorking ? "✅" : "❌"));
-            System.out.println("ACKs únicos PERFECTOS:    " + expectedUniqueACKs + " | Actual: " + results.uniqueACKsCount + " " + (perfectACKUniqueness ? "✅" : "❌"));
-            System.out.println("Fase 1 (Secuencial):     " + (phase1Success ? "✅ EXITOSA" : "❌ FALLIDA"));
-            System.out.println("Fase 2 (Concurrente):    " + (phase2Success ? "✅ EXITOSA" : "❌ FALLIDA"));
+            System.out.println("Ciudadanos únicos:        " + expectedUniqueCitizens + " | Actual: " + results.uniqueVotersCount + " " + (correctUniqueVoters ? "Bien" : "Mal"));
+            System.out.println("Intentos totales:         " + expectedTotalAttempts + " | Actual: " + results.totalVotesSent + " " + (correctTotalAttempts ? "Bien" : "Mal"));
+            System.out.println("ACKs recibidos:          ≥" + (int)(expectedTotalAttempts * 0.98) + " | Actual: " + results.totalACKsReceived + " " + (allAttemptsProcessed ? "Bien" : "Mal"));
+            System.out.println("Duplicados esperados:    ≥" + (int)(expectedDuplicates * 0.95) + " | Actual: " + results.duplicatesDetected + " " + (duplicateDetectionWorking ? "Bien" : "Mal"));
+            System.out.println("ACKs únicos PERFECTOS:    " + expectedUniqueACKs + " | Actual: " + results.uniqueACKsCount + " " + (perfectACKUniqueness ? "Bien" : "Mal"));
+            System.out.println("Fase 1 (Secuencial):     " + (phase1Success ? "EXITOSA" : "FALLIDA"));
+            System.out.println("Fase 2 (Concurrente):    " + (phase2Success ? "EXITOSA" : "FALLIDA"));
 
             System.out.println("═══════════════════════════════════════════════════════════════");
 
@@ -94,37 +94,37 @@ public class TestCase2_Duplicates {
                     phase2Success;
 
             if (success) {
-                System.out.println("\n🎉 ✅ STRESS TEST EXITOSO - SISTEMA APROBADO AL 100%");
-                System.out.println("🏆 El sistema maneja duplicados perfectamente bajo condiciones extremas");
-                System.out.println("🚀 ACKManager centralizado es 100% confiable y consistente");
-                System.out.println("🔒 Garantía absoluta: " + results.uniqueACKsCount + " ACKs únicos para " + results.uniqueVotersCount + " ciudadanos");
+                System.out.println("\nSTRESS TEST EXITOSO - SISTEMA APROBADO AL 100%");
+                System.out.println("El sistema maneja duplicados perfectamente bajo condiciones extremas");
+                System.out.println("ACKManager centralizado es 100% confiable y consistente");
+                System.out.println("Garantía absoluta: " + results.uniqueACKsCount + " ACKs únicos para " + results.uniqueVotersCount + " ciudadanos");
             } else {
-                System.out.println("\n❌ STRESS TEST FALLIDO - SISTEMA REQUIERE MEJORAS");
+                System.out.println("\nSTRESS TEST FALLIDO - SISTEMA REQUIERE MEJORAS");
 
                 if (!correctUniqueVoters) {
-                    System.out.println("   ❌ Número incorrecto de votantes únicos");
+                    System.out.println("Número incorrecto de votantes únicos");
                 }
                 if (!duplicateDetectionWorking) {
-                    System.out.println("   ❌ Detección de duplicados insuficiente bajo stress");
+                    System.out.println("Detección de duplicados insuficiente bajo stress");
                 }
                 if (!allAttemptsProcessed) {
-                    System.out.println("   ❌ Pérdida de votos bajo carga masiva");
+                    System.out.println("Pérdida de votos bajo carga masiva");
                 }
                 if (!perfectACKUniqueness) {
-                    System.out.println("   ❌ CRÍTICO: ACKManager falló bajo concurrencia extrema");
+                    System.out.println("CRÍTICO: ACKManager falló bajo concurrencia extrema");
                 }
                 if (!phase1Success) {
-                    System.out.println("   ❌ Falló en test secuencial intensivo");
+                    System.out.println("Falló en test secuencial intensivo");
                 }
                 if (!phase2Success) {
-                    System.out.println("   ❌ Falló en test concurrente masivo");
+                    System.out.println("Falló en test concurrente masivo");
                 }
             }
 
             return success;
 
         } catch (Exception e) {
-            System.err.println("❌ Error ejecutando Stress Test: " + e.getMessage());
+            System.err.println("Error ejecutando Stress Test: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -134,9 +134,9 @@ public class TestCase2_Duplicates {
      * FASE 1: Test secuencial intensivo - 25 ciudadanos, 10 intentos cada uno
      */
     private static boolean runSequentialIntensiveTest(VotingProxyPrx proxy, int citizenCount) {
-        System.out.println("\n🔥 FASE 1: TEST SECUENCIAL INTENSIVO");
-        System.out.println("📊 " + citizenCount + " ciudadanos, 10 intentos cada uno = " + (citizenCount * 10) + " votos");
-        System.out.println("🎯 Patrón: Cada ciudadano vota 10 veces por candidatos aleatorios");
+        System.out.println("\nFASE 1: TEST SECUENCIAL INTENSIVO");
+        System.out.println(citizenCount + " ciudadanos, 10 intentos cada uno = " + (citizenCount * 10) + " votos");
+        System.out.println("Patrón: Cada ciudadano vota 10 veces por candidatos aleatorios");
 
         Random random = new Random();
         String[] candidates = {"candidate001", "candidate002", "candidate003", "candidate004", "blank"};
@@ -145,7 +145,7 @@ public class TestCase2_Duplicates {
             String citizenId = String.format("sequential_citizen%03d", i);
 
             if (i % 5 == 0) {
-                System.out.println("📈 Progreso secuencial: " + i + "/" + citizenCount + " ciudadanos");
+                System.out.println("Progreso secuencial: " + i + "/" + citizenCount + " ciudadanos");
             }
 
             // 10 intentos por ciudadano con candidatos aleatorios
@@ -158,7 +158,7 @@ public class TestCase2_Duplicates {
             }
         }
 
-        System.out.println("✅ Fase 1 completada - verificando consistencia...");
+        System.out.println("Fase 1 completada - verificando consistencia...");
 
         // Verificar que cada ciudadano tiene exactamente un ACK único
         return verifyACKConsistency("SECUENCIAL", citizenCount);
@@ -168,9 +168,9 @@ public class TestCase2_Duplicates {
      * FASE 2: Test concurrente masivo - 75 ciudadanos, 10 intentos cada uno, CONCURRENTE
      */
     private static boolean runMassiveConcurrentTest(VotingProxyPrx proxy, int citizenCount) {
-        System.out.println("\n🚀 FASE 2: TEST CONCURRENTE MASIVO");
-        System.out.println("📊 " + citizenCount + " ciudadanos, 10 intentos cada uno = " + (citizenCount * 10) + " votos");
-        System.out.println("⚡ CONCURRENCIA EXTREMA: Todos los votos simultáneos con threads");
+        System.out.println("\nFASE 2: TEST CONCURRENTE MASIVO");
+        System.out.println(citizenCount + " ciudadanos, 10 intentos cada uno = " + (citizenCount * 10) + " votos");
+        System.out.println("CONCURRENCIA EXTREMA: Todos los votos simultáneos con threads");
 
         ExecutorService executor = Executors.newFixedThreadPool(20); // 20 threads concurrentes
         List<CompletableFuture<Void>> futures = new ArrayList<>();
@@ -204,9 +204,9 @@ public class TestCase2_Duplicates {
         // Esperar que todos los votos concurrentes terminen
         try {
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get(60, TimeUnit.SECONDS);
-            System.out.println("✅ Fase 2 completada - todos los votos concurrentes procesados");
+            System.out.println("Fase 2 completada - todos los votos concurrentes procesados");
         } catch (Exception e) {
-            System.err.println("❌ Timeout o error en fase concurrente: " + e.getMessage());
+            System.err.println("Timeout o error en fase concurrente: " + e.getMessage());
             return false;
         } finally {
             executor.shutdown();
@@ -242,7 +242,7 @@ public class TestCase2_Duplicates {
                 // Verificar que cada ciudadano tiene consistentemente el mismo ACK
                 String existingACK = citizenACKMap.get(record.citizenId);
                 if (existingACK != null && !existingACK.equals(record.ackId)) {
-                    System.err.println("❌ [" + phaseName + "] Inconsistencia de ACK para " + record.citizenId +
+                    System.err.println("["+ phaseName + "] Inconsistencia de ACK para " + record.citizenId +
                             ": " + existingACK + " vs " + record.ackId);
                     success = false;
                 } else {
@@ -257,9 +257,9 @@ public class TestCase2_Duplicates {
                 ", ACKs únicos: " + phaseACKs.size());
 
         if (citizenACKMap.size() == phaseACKs.size()) {
-            System.out.println("✅ [" + phaseName + "] PERFECTO: 1 ACK único por ciudadano");
+            System.out.println("[" + phaseName + "] PERFECTO: 1 ACK único por ciudadano");
         } else {
-            System.err.println("❌ [" + phaseName + "] FALLO: Inconsistencia de ACKs");
+            System.err.println("[" + phaseName + "] FALLO: Inconsistencia de ACKs");
             success = false;
         }
 
@@ -288,7 +288,7 @@ public class TestCase2_Duplicates {
      * Análisis detallado de resultados del stress test
      */
     private static void printStressTestAnalysis(VotingMetrics.TestResults results) {
-        System.out.println("\n📊 ANÁLISIS DETALLADO DEL STRESS TEST");
+        System.out.println("\nANÁLISIS DETALLADO DEL STRESS TEST");
         System.out.println("═══════════════════════════════════════════════════════════════");
 
         VotingMetrics.printACKAnalysis();
@@ -296,7 +296,7 @@ public class TestCase2_Duplicates {
         results.printSummary();
 
         // Análisis de distribución de latencias
-        System.out.println("\n📈 ANÁLISIS DE RENDIMIENTO:");
+        System.out.println("\nANÁLISIS DE RENDIMIENTO:");
         System.out.println("Latencia P50:             " + calculatePercentile(results.latencies, 0.50) + " ms");
         System.out.println("Latencia P90:             " + calculatePercentile(results.latencies, 0.90) + " ms");
         System.out.println("Latencia P95:             " + results.p95Latency + " ms");
@@ -310,7 +310,7 @@ public class TestCase2_Duplicates {
             }
         }
 
-        System.out.println("\n🗳️  DISTRIBUCIÓN DE VOTOS VÁLIDOS:");
+        System.out.println("\nDISTRIBUCIÓN DE VOTOS VÁLIDOS:");
         candidateDistribution.forEach((candidate, count) ->
                 System.out.println("  " + candidate + ": " + count + " votos"));
     }
@@ -328,26 +328,26 @@ public class TestCase2_Duplicates {
     }
 
     /**
-     * Método main para ejecutar directamente el stress test
+     * Metodo main para ejecutar directamente el stress test
      */
     public static void main(String[] args) {
-        System.out.println("🧪 EJECUTANDO DIRECTAMENTE STRESS TEST DE DUPLICADOS");
+        System.out.println("EJECUTANDO DIRECTAMENTE STRESS TEST DE DUPLICADOS");
         System.out.println("════════════════════════════════════════════════════════════════");
 
         long startTime = System.currentTimeMillis();
         boolean result = runTest();
         long totalTime = System.currentTimeMillis() - startTime;
 
-        System.out.println("\n📊 RESULTADO FINAL DEL STRESS TEST:");
+        System.out.println("\nRESULTADO FINAL DEL STRESS TEST:");
         System.out.println("══════════════════════════════════════════════");
-        System.out.println("Stress Test: " + (result ? "🎉 ✅ EXITOSO" : "💥 ❌ FALLIDO"));
+        System.out.println("Stress Test: " + (result ? "EXITOSO" : "FALLIDO"));
         System.out.println("Tiempo total: " + (totalTime / 1000) + " segundos");
 
         if (result) {
-            System.out.println("🏆 SISTEMA VALIDADO AL 100% BAJO CONDICIONES EXTREMAS");
-            System.out.println("🚀 Listo para producción con máxima confianza");
+            System.out.println("SISTEMA VALIDADO AL 100% BAJO CONDICIONES EXTREMAS");
+            System.out.println("Listo para producción con máxima confianza");
         } else {
-            System.out.println("🔧 Se requieren mejoras para manejar carga extrema");
+            System.out.println("Se requieren mejoras para manejar carga extrema");
         }
 
         System.out.println("══════════════════════════════════════════════");

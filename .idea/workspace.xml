@@ -6,12 +6,12 @@
   <component name="ChangeListManager">
     <list default="true" id="24301e38-80d3-47e0-8e0d-97d4c3d83b83" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/citizen-acks.csv" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/citizen-acks.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-1/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-1/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-2/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-2/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-3/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node/servers/SimpleServer-3/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/votes.csv" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/votes.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/departmentalServer/src/main/java/VotationI.java" beforeDir="false" afterPath="$PROJECT_DIR$/departmentalServer/src/main/java/VotationI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/departmentalServer/src/main/java/VoteManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/departmentalServer/src/main/java/VoteManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testFramework/src/main/java/TestCase1_Baseline.java" beforeDir="false" afterPath="$PROJECT_DIR$/testFramework/src/main/java/TestCase1_Baseline.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testFramework/src/main/java/TestCase2_Duplicates.java" beforeDir="false" afterPath="$PROJECT_DIR$/testFramework/src/main/java/TestCase2_Duplicates.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/testFramework/src/main/java/TestCase3_NetworkFailure.java" beforeDir="false" afterPath="$PROJECT_DIR$/testFramework/src/main/java/TestCase3_NetworkFailure.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testFramework/src/main/java/TestCase4_ServerFailure.java" beforeDir="false" afterPath="$PROJECT_DIR$/testFramework/src/main/java/TestCase4_ServerFailure.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -127,7 +127,7 @@
       <workItem from="1748655359096" duration="13933000" />
       <workItem from="1748710394147" duration="187000" />
       <workItem from="1748793871230" duration="7045000" />
-      <workItem from="1748833464694" duration="3651000" />
+      <workItem from="1748833464694" duration="4350000" />
     </task>
     <servers />
   </component>

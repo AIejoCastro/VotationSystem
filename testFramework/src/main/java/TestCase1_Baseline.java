@@ -4,7 +4,7 @@ import java.util.concurrent.*;
 public class TestCase1_Baseline {
 
     public static boolean runTest() {
-        System.out.println("\n🧪 CASO 1: OPERACIÓN NORMAL (BASELINE)");
+        System.out.println("\nCASO 1: OPERACIÓN NORMAL");
         System.out.println("═══════════════════════════════════════════════");
 
         VotingMetrics.reset();
@@ -18,13 +18,13 @@ public class TestCase1_Baseline {
             );
 
             if (proxy == null) {
-                System.err.println("❌ No se pudo conectar al VotingSite");
+                System.err.println("No se pudo conectar al VotingSite");
                 return false;
             }
 
             // Verificar estado del sistema
             String systemStatus = proxy.getSystemStatus();
-            System.out.println("🔧 Estado del sistema: " + systemStatus);
+            System.out.println("Estado del sistema: " + systemStatus);
 
             // Simular 100 votantes únicos
             VotingSimulator simulator = new VotingSimulator(20);
@@ -42,8 +42,8 @@ public class TestCase1_Baseline {
             VotingMetrics.TestResults results = VotingMetrics.getResults();
             results.printSummary();
 
-            System.out.println("\n⏱️  Tiempo total de prueba: " + totalTime + " ms");
-            System.out.println("📈 Throughput: " + String.format("%.2f", (double) results.totalVotesSent / totalTime * 1000) + " votos/segundo");
+            System.out.println("\nTiempo total de prueba: " + totalTime + " ms");
+            System.out.println("Throughput: " + String.format("%.2f", (double) results.totalVotesSent / totalTime * 1000) + " votos/segundo");
 
             // Criterios de éxito
             boolean success = results.passesReliabilityTest() &&
@@ -53,15 +53,15 @@ public class TestCase1_Baseline {
                     results.duplicatesDetected == 0;
 
             if (success) {
-                System.out.println("\n✅ CASO 1: EXITOSO - Baseline establecido correctamente");
+                System.out.println("\nCASO 1: EXITOSO - Baseline establecido correctamente");
             } else {
-                System.out.println("\n❌ CASO 1: FALLIDO - No se cumplieron los criterios");
+                System.out.println("\nCASO 1: FALLIDO - No se cumplieron los criterios");
             }
 
             return success;
 
         } catch (Exception e) {
-            System.err.println("❌ Error ejecutando Caso 1: " + e.getMessage());
+            System.err.println("Error ejecutando Caso 1: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
