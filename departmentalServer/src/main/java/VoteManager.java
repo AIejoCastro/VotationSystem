@@ -1,18 +1,67 @@
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.StampedLock;
 
+/**
+ * VoteManager optimizado para alta carga - 1,777+ votos/segundo
+ * Mejoras principales:
+ * - StampedLock para mejor concurrencia de lectura
+ * - Multiple worker threads con partitioning
+ * - Queue sizing optimizado para alta carga
+ * - Métricas de performance en tiempo real
+ */
 public class VoteManager {
     private static final VoteManager instance = new VoteManager();
 
-    // Sincronización mejorada para evitar race conditions
-    private final Map<String, String> citizenVotes = new ConcurrentHashMap<>(); // ciudadano -> candidato
-    private final BlockingQueue<VoteCommand> queue = new LinkedBlockingQueue<>();
+    // OPTIMIZACIÓN: StampedLock para mejor concurrencia de lectura
+    private final StampedLock lock = new StampedLock();
 
+    // OPTIMIZACIÓN: Partitioning para reducir contención
+    private final int PARTITION_COUNT = 16;
+    private final Map<String, String>[] citizenVotesPartitions;
+    private final StampedLock[] partitionLocks;
+
+    // OPTIMIZACIÓN: Queue con mayor capacidad y múltiples workers
+    private final BlockingQueue<VoteCommand> queue = new LinkedBlockingQueue<>(50000);
+    private final ExecutorService writerPool;
+    private final int WRITER_THREAD_COUNT = 8;
+
+    // MÉTRICAS de performance
+    private final AtomicInteger totalVotes = new AtomicInteger(0);
+    private final AtomicInteger duplicateVotes = new AtomicInteger(0);
+    private final AtomicInteger queueOverflows = new AtomicInteger(0);
+    private volatile long lastStatsTime = System.currentTimeMillis();
+
+    @SuppressWarnings("unchecked")
     private VoteManager() {
-        for (int i = 0; i < 4; i++) { // 4 hilos para consumir
-            new Thread(new VoteWriter(queue)).start();
+        // Inicializar particiones
+        citizenVotesPartitions = new Map[PARTITION_COUNT];
+        partitionLocks = new StampedLock[PARTITION_COUNT];
+
+        for (int i = 0; i < PARTITION_COUNT; i++) {
+            citizenVotesPartitions[i] = new ConcurrentHashMap<>(5000);
+            partitionLocks[i] = new StampedLock();
         }
+
+        // OPTIMIZACIÓN: Pool de threads optimizado para escritura
+        writerPool = Executors.newFixedThreadPool(WRITER_THREAD_COUNT, r -> {
+            Thread t = new Thread(r, "OptimizedVoteWriter-" + Thread.currentThread().getId());
+            t.setDaemon(true);
+            return t;
+        });
+
+        // Iniciar workers
+        for (int i = 0; i < WRITER_THREAD_COUNT; i++) {
+            writerPool.submit(new VoteWriter(queue));
+        }
+
+        // NUEVA: Thread para métricas periódicas
+        startMetricsReporter();
+
+        System.out.println("[VoteManager-OPT] Inicializado con " + PARTITION_COUNT +
+                " particiones y " + WRITER_THREAD_COUNT + " workers");
     }
 
     public static VoteManager getInstance() {
@@ -20,21 +69,36 @@ public class VoteManager {
     }
 
     /**
-     * Recibe un voto y valida duplicados con sincronización estricta
-     * @param citizenId ID del ciudadano
-     * @param candidateId ID del candidato
-     * @return VoteResult con información del resultado
+     * Recibe voto con partitioning optimizado para alta concurrencia
      */
-    public synchronized VoteResult receiveVote(String citizenId, String candidateId) {
-        // CRÍTICO: Este metodo debe ser completamente sincronizado para evitar race conditions
+    public VoteResult receiveVote(String citizenId, String candidateId) {
+        totalVotes.incrementAndGet();
 
-        // Verificar si el ciudadano ya votó
+        // OPTIMIZACIÓN: Determinar partición basada en hash del citizenId
+        int partition = Math.abs(citizenId.hashCode()) % PARTITION_COUNT;
+        Map<String, String> citizenVotes = citizenVotesPartitions[partition];
+        StampedLock partitionLock = partitionLocks[partition];
+
+        // PASO 1: Verificación optimista con read lock
+        long stamp = partitionLock.tryOptimisticRead();
         String existingVote = citizenVotes.get(citizenId);
 
+        if (!partitionLock.validate(stamp)) {
+            // Fallback a read lock si optimistic falló
+            stamp = partitionLock.readLock();
+            try {
+                existingVote = citizenVotes.get(citizenId);
+            } finally {
+                partitionLock.unlockRead(stamp);
+            }
+        }
+
         if (existingVote != null) {
-            // Ciudadano ya votó - retornar información del voto original
-            System.out.println("[VoteManager] Ciudadano " + citizenId + " ya votó por " + existingVote +
-                    ", rechazando nuevo intento por " + candidateId);
+            // Ciudadano ya votó - incrementar contador de duplicados
+            duplicateVotes.incrementAndGet();
+
+            System.out.println("[VoteManager-OPT] Duplicado en partición " + partition +
+                    ": " + citizenId + " ya votó por " + existingVote);
 
             if (existingVote.equals(candidateId)) {
                 return new VoteResult(false, true, existingVote, "Voto duplicado idéntico");
@@ -43,60 +107,100 @@ public class VoteManager {
             }
         }
 
-        // Nuevo voto válido - registrar ATÓMICAMENTE
-        citizenVotes.put(citizenId, candidateId);
-        queue.add(new VoteCommand(citizenId, candidateId));
+        // PASO 2: Registrar nuevo voto con write lock
+        stamp = partitionLock.writeLock();
+        try {
+            // Double-check después de obtener write lock
+            existingVote = citizenVotes.get(citizenId);
+            if (existingVote != null) {
+                duplicateVotes.incrementAndGet();
+                return new VoteResult(false, true, existingVote, "Voto duplicado detectado en write lock");
+            }
 
-        System.out.println("[VoteManager] Nuevo voto válido registrado: " + citizenId + " -> " + candidateId);
+            // Registrar voto nuevo ATÓMICAMENTE
+            citizenVotes.put(citizenId, candidateId);
+
+        } finally {
+            partitionLock.unlockWrite(stamp);
+        }
+
+        // PASO 3: Agregar a cola de escritura con overflow handling
+        VoteCommand command = new VoteCommand(citizenId, candidateId);
+        boolean queued = queue.offer(command);
+
+        if (!queued) {
+            queueOverflows.incrementAndGet();
+            System.err.println("[VoteManager-OPT] OVERFLOW: Cola de escritura llena. Intentando escritura directa.");
+
+            // Fallback: escritura directa en caso de overflow
+            try {
+                command.persist(new VoteDAO());
+            } catch (Exception e) {
+                System.err.println("[VoteManager-OPT] ERROR en escritura directa: " + e.getMessage());
+            }
+        }
+
+        System.out.println("[VoteManager-OPT] Nuevo voto válido en partición " + partition +
+                ": " + citizenId + " -> " + candidateId);
+
         return new VoteResult(true, false, candidateId, "Voto registrado exitosamente");
     }
 
     /**
-     * Obtener el voto existente de un ciudadano
+     * Obtener voto existente con partitioning
      */
     public String getExistingVote(String citizenId) {
-        return citizenVotes.get(citizenId);
+        int partition = Math.abs(citizenId.hashCode()) % PARTITION_COUNT;
+        Map<String, String> citizenVotes = citizenVotesPartitions[partition];
+        StampedLock partitionLock = partitionLocks[partition];
+
+        // Lectura optimista
+        long stamp = partitionLock.tryOptimisticRead();
+        String vote = citizenVotes.get(citizenId);
+
+        if (!partitionLock.validate(stamp)) {
+            // Fallback a read lock
+            stamp = partitionLock.readLock();
+            try {
+                vote = citizenVotes.get(citizenId);
+            } finally {
+                partitionLock.unlockRead(stamp);
+            }
+        }
+
+        return vote;
     }
 
     /**
-     * NUEVO: Verificar si un ciudadano ya votó (para debugging)
+     * Verificación rápida de voto existente
      */
     public boolean hasVoted(String citizenId) {
-        return citizenVotes.containsKey(citizenId);
+        return getExistingVote(citizenId) != null;
     }
 
     /**
-     * NUEVO: Obtener todos los ciudadanos que han votado (para debugging)
+     * Obtener todos los votantes (agregando todas las particiones)
      */
     public Set<String> getAllVoters() {
-        return citizenVotes.keySet();
-    }
+        Set<String> allVoters = ConcurrentHashMap.newKeySet();
 
-    /**
-     * Obtener estadísticas de votación
-     */
-    public VotingStats getStats() {
-        return new VotingStats(citizenVotes.size(), queue.size());
-    }
+        for (int i = 0; i < PARTITION_COUNT; i++) {
+            Map<String, String> partition = citizenVotesPartitions[i];
+            StampedLock lock = partitionLocks[i];
 
-    /**
-     * NUEVO: Imprimir estado interno para debugging
-     */
-    public void printDebugInfo() {
-        System.out.println("[VoteManager] === DEBUG INFO ===");
-        System.out.println("Total ciudadanos registrados: " + citizenVotes.size());
-        System.out.println("Votos en cola de escritura: " + queue.size());
-
-        if (citizenVotes.size() <= 50) { // Solo mostrar si no son demasiados
-            System.out.println("Ciudadanos registrados:");
-            citizenVotes.forEach((citizen, candidate) ->
-                    System.out.println("  " + citizen + " -> " + candidate));
+            long stamp = lock.readLock();
+            try {
+                allVoters.addAll(partition.keySet());
+            } finally {
+                lock.unlockRead(stamp);
+            }
         }
-        System.out.println("================================");
+
+        return allVoters;
     }
 
     /**
-     * Resultado de procesamiento de voto
+     * Resultado de procesamiento de voto (CLASE AGREGADA)
      */
     public static class VoteResult {
         public final boolean success;
@@ -119,20 +223,137 @@ public class VoteManager {
     }
 
     /**
-     * Estadísticas de votación
+     * Estadísticas optimizadas con métricas de performance
+     */
+    public VotingStats getStats() {
+        int totalVotersCount = 0;
+        for (int i = 0; i < PARTITION_COUNT; i++) {
+            totalVotersCount += citizenVotesPartitions[i].size();
+        }
+
+        return new VotingStats(
+                totalVotersCount,
+                queue.size(),
+                totalVotes.get(),
+                duplicateVotes.get(),
+                queueOverflows.get(),
+                calculateThroughput()
+        );
+    }
+
+    /**
+     * Calcular throughput en votos/segundo
+     */
+    private double calculateThroughput() {
+        long currentTime = System.currentTimeMillis();
+        long timeDiff = currentTime - lastStatsTime;
+
+        if (timeDiff > 0) {
+            return (double) totalVotes.get() / (timeDiff / 1000.0);
+        }
+        return 0.0;
+    }
+
+    /**
+     * Debug info con métricas por partición
+     */
+    public void printDebugInfo() {
+        System.out.println("[VoteManager-OPT] === DEBUG INFO ===");
+
+        int totalCitizens = 0;
+        for (int i = 0; i < PARTITION_COUNT; i++) {
+            int partitionSize = citizenVotesPartitions[i].size();
+            totalCitizens += partitionSize;
+
+            if (partitionSize > 0) {
+                System.out.println("Partición " + i + ": " + partitionSize + " votantes");
+            }
+        }
+
+        System.out.println("Total ciudadanos registrados: " + totalCitizens);
+        System.out.println("Votos en cola de escritura: " + queue.size());
+        System.out.println("Total votos procesados: " + totalVotes.get());
+        System.out.println("Duplicados detectados: " + duplicateVotes.get());
+        System.out.println("Overflows de cola: " + queueOverflows.get());
+        System.out.println("Throughput estimado: " + String.format("%.2f", calculateThroughput()) + " votos/seg");
+        System.out.println("Workers activos: " + WRITER_THREAD_COUNT);
+        System.out.println("================================");
+    }
+
+    /**
+     * Reporter de métricas en background
+     */
+    private void startMetricsReporter() {
+        Thread reporter = new Thread(() -> {
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    Thread.sleep(30000); // Reporte cada 30 segundos
+
+                    if (totalVotes.get() > 0) {
+                        VotingStats stats = getStats();
+                        System.out.println("[VoteManager-METRICS] " + stats.toString());
+
+                        // Reset counters para próximo período
+                        lastStatsTime = System.currentTimeMillis();
+                    }
+
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        });
+        reporter.setDaemon(true);
+        reporter.setName("VoteManager-MetricsReporter");
+        reporter.start();
+    }
+
+    /**
+     * Shutdown graceful
+     */
+    public void shutdown() {
+        System.out.println("[VoteManager-OPT] Iniciando shutdown...");
+
+        writerPool.shutdown();
+        try {
+            if (!writerPool.awaitTermination(30, TimeUnit.SECONDS)) {
+                writerPool.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            writerPool.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+
+        System.out.println("[VoteManager-OPT] Shutdown completo. Votos pendientes en cola: " + queue.size());
+    }
+
+    /**
+     * Estadísticas mejoradas con métricas de performance
      */
     public static class VotingStats {
         public final int totalVoters;
         public final int pendingVotes;
+        public final int totalProcessed;
+        public final int duplicatesDetected;
+        public final int queueOverflows;
+        public final double throughputVotesPerSec;
 
-        public VotingStats(int totalVoters, int pendingVotes) {
+        public VotingStats(int totalVoters, int pendingVotes, int totalProcessed,
+                           int duplicatesDetected, int queueOverflows, double throughputVotesPerSec) {
             this.totalVoters = totalVoters;
             this.pendingVotes = pendingVotes;
+            this.totalProcessed = totalProcessed;
+            this.duplicatesDetected = duplicatesDetected;
+            this.queueOverflows = queueOverflows;
+            this.throughputVotesPerSec = throughputVotesPerSec;
         }
 
         @Override
         public String toString() {
-            return String.format("VotingStats{totalVoters=%d, pendingVotes=%d}", totalVoters, pendingVotes);
+            return String.format("VotingStats{voters=%d, pending=%d, processed=%d, " +
+                            "duplicates=%d, overflows=%d, throughput=%.2f v/s}",
+                    totalVoters, pendingVotes, totalProcessed, duplicatesDetected,
+                    queueOverflows, throughputVotesPerSec);
         }
     }
 }

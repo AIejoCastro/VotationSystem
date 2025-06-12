@@ -1,19 +1,60 @@
-# Configuración del Sistema de Mensajería Confiable
+#
+# Configuración ReliableMessaging optimizada para alta carga
+# Debe manejar colas de hasta 1000+ votos pendientes durante picos
+#
 
-# Intervalo de reintento en milisegundos (solo cuando hay votos pendientes)
-ReliableMessaging.RetryInterval=10000
+# RETRY INTERVAL reducido para procesamiento más rápido
+ReliableMessaging.RetryInterval=3000
 
-# Ruta del archivo de cola offline
+# PATHS optimizados para I/O rápido
 ReliableMessaging.OfflineQueuePath=config/db/pending-votes.csv
-
-# Ruta del archivo de ACKs para auditoría
 ReliableMessaging.ACKFilePath=config/db/vote-acks.log
 
-# Habilitar logs detallados (1=sí, 0=no)
-ReliableMessaging.VerboseLogging=1
+# LOGGING mínimo para performance bajo carga
+ReliableMessaging.VerboseLogging=0
 
-# Configuración de IceGrid
-Ice.Default.Locator=DemoIceGrid/Locator:default -h localhost -p 4061
+# ICEGRID connection con failover
+Ice.Default.Locator=DemoIceGrid/Locator:default -h localhost -p 4061:default -h localhost -p 4062:default -h localhost -p 4063
 IceGrid.InstanceName=DemoIceGrid
-Ice.Override.Timeout=5000
-Ice.RetryIntervals=-1
+
+# THREAD POOLS para ReliableMessaging
+Ice.ThreadPool.Server.Size=15
+Ice.ThreadPool.Server.SizeMax=75
+Ice.ThreadPool.Client.Size=20
+Ice.ThreadPool.Client.SizeMax=100
+
+# NETWORK optimizations para retry workers
+Ice.Override.Timeout=8000
+Ice.RetryIntervals=0 100 200 500 1000
+Ice.Connection.IdleTimeout=180
+
+# BUFFER optimizations
+Ice.MessageSizeMax=16777216
+Ice.CacheMessageBuffers=1
+
+# NUEVAS PROPIEDADES: Worker pool configuration
+ReliableMessaging.WorkerThreads=8
+ReliableMessaging.MaxRetries=50
+ReliableMessaging.BatchSize=10
+ReliableMessaging.QueueProcessingInterval=1000
+
+# FILE I/O optimization
+ReliableMessaging.BufferedWrite=true
+ReliableMessaging.SyncInterval=5000
+
+# PERFORMANCE monitoring
+ReliableMessaging.EnableMetrics=true
+ReliableMessaging.MetricsInterval=30000
+
+# ERROR HANDLING bajo carga
+ReliableMessaging.MaxQueueSize=10000
+ReliableMessaging.DropOldestOnOverflow=false
+ReliableMessaging.AlertThreshold=5000
+
+# GC optimization
+Ice.GC.Interval=0
+
+# LOGGING minimal
+Ice.Trace.ThreadPool=0
+Ice.Trace.Network=0
+Ice.Warn.Connections=0

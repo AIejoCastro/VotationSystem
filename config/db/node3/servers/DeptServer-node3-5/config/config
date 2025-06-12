@@ -1,0 +1,15 @@
+# Configuration file (06/11/25 23:51:10.582)
+
+# Server configuration
+Ice.Admin.ServerId=DeptServer-node3-5
+Ice.Admin.Endpoints=tcp -h localhost
+Ice.ProgramName=DeptServer-node3-5
+# Object adapter Votation
+Votation.Endpoints=tcp -h localhost
+Votation.AdapterId=DeptServer-node3-5.Votation
+# Server descriptor properties
+Identity=dept-node3-5
+Identity=dept-node3-5
+Ice.ProgramName=DeptServer-node3-5
+Votation.AdapterId=VotationAdapter-node3-5
+Ice.Default.Locator=DemoIceGrid/Locator:default -h localhost -p 4061:default -h localhost -p 4062:default -h localhost -p 4063
