@@ -1,17 +1,61 @@
-# Configuración de la Máquina de Votación
+#
+# Configuración VotingMachine optimizada para alta carga
+# Múltiples máquinas de votación concurrentes
+#
 
-# Identificación de la máquina
-VotingMachine.ID=VM-001
-VotingMachine.Location=Centro de Votación Plaza Principal
-
-# Configuración de conexión al VotingSite (Ice)
+# CONNECTION POOLING para múltiples VotingMachines simultáneas
 VotingSite.Host=localhost
-VotingSite.Port=9090
-VotingSite.Timeout=10000
+VotingSite.Port=9999
+VotingSite.Timeout=15000
 
-# Configuración de logging
-VotingMachine.VerboseLogging=true
+# RETRY configuration para manejo de picos de carga
+VotingSite.RetryInterval=500
+VotingSite.MaxRetries=5
+VotingSite.BackoffMultiplier=2
 
-# Configuración de la interfaz
+# CONNECTION optimizations
+VotingSite.ConnectionPool.Size=10
+VotingSite.ConnectionPool.Max=50
+VotingSite.KeepAlive=true
+VotingSite.IdleTimeout=300
+
+# BUFFER sizes para requests de votación
+VotingSite.SendBufferSize=32768
+VotingSite.ReceiveBufferSize=32768
+
+# TIMEOUT configurations para alta latencia bajo carga
+VotingSite.ConnectTimeout=10000
+VotingSite.RequestTimeout=30000
+VotingSite.ReadTimeout=20000
+
+# UI OPTIMIZATIONS
 VotingMachine.Language=es
 VotingMachine.Theme=default
+VotingMachine.ResponseCaching=true
+
+# PERFORMANCE monitoring
+VotingMachine.EnableMetrics=true
+VotingMachine.MetricsInterval=60000
+
+# ERROR HANDLING robusto
+VotingMachine.AutoRetry=true
+VotingMachine.RetryOnTimeout=true
+VotingMachine.RetryOnNetworkError=true
+
+# LOGGING minimal para mejor performance
+VotingMachine.VerboseLogging=false
+VotingMachine.LogLevel=ERROR
+
+# NUEVA: Configuración para handling de múltiples usuarios simultáneos
+VotingMachine.MaxConcurrentUsers=50
+VotingMachine.SessionTimeout=1800000
+VotingMachine.HeartbeatInterval=30000
+
+# NUEVA: Cache local para candidatos (reduce requests)
+VotingMachine.CacheEnabled=true
+VotingMachine.CacheTTL=3600000
+
+# NUEVA: Configuración de UI responsiva bajo carga
+VotingMachine.UITimeout=5000
+VotingMachine.ProgressIndicator=true
+VotingMachine.AsyncOperations=true

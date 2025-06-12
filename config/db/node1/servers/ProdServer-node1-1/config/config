@@ -1,0 +1,14 @@
+# Configuration file (06/12/25 11:28:03.765)
+
+# Server configuration
+Ice.Admin.ServerId=ProdServer-node1-1
+Ice.Admin.Endpoints=tcp -h localhost
+Ice.ProgramName=ProdServer-node1-1
+# Object adapter Votation
+Votation.Endpoints=tcp -h localhost
+Votation.AdapterId=ProdServer-node1-1.Votation
+# Server descriptor properties
+Identity=prod-node1-1
+Identity=prod-node1-1
+Ice.ProgramName=ProdServer-node1-1
+Ice.Default.Locator=DemoIceGrid/Locator:default -h localhost -p 4061:default -h localhost -p 4062:default -h localhost -p 4063
