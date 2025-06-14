@@ -131,6 +131,8 @@ public class CentralServer {
         System.out.println("COMANDOS ADMINISTRATIVOS DISPONIBLES:");
         System.out.println("  status    - Estado del servidor y estadísticas");
         System.out.println("  votes     - Resumen de votos procesados");
+        System.out.println("  results   - Resultados de la votación por candidato");
+        System.out.println("  verify    - Verificar integridad de datos");
         System.out.println("  acks      - Estado del ACK Manager");
         System.out.println("  debug     - Información detallada de debug");
         System.out.println("  clear     - Limpiar estado (SOLO TESTING)");
@@ -147,8 +149,16 @@ public class CentralServer {
                 servant.printServerStatus();
                 break;
 
+            case "verify":
+                servant.verifyDataIntegrity();
+                break;
+
             case "votes":
                 servant.printVotesSummary();
+                break;
+
+            case "results":
+                servant.printVotingResults();
                 break;
 
             case "acks":
