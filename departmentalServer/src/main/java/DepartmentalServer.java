@@ -1,5 +1,6 @@
 //
-// Copyright (c) ZeroC, Inc. All rights reserved.
+// DepartmentalServer - MODIFICADO para actuar como balanceador hacia CentralServer
+// YA NO maneja base de datos, solo distribuye carga hacia el servidor central
 //
 
 public class DepartmentalServer
@@ -32,7 +33,12 @@ public class DepartmentalServer
                 com.zeroc.Ice.ObjectAdapter adapter = communicator.createObjectAdapter("Votation");
                 com.zeroc.Ice.Properties properties = communicator.getProperties();
                 com.zeroc.Ice.Identity id = com.zeroc.Ice.Util.stringToIdentity(properties.getProperty("Identity"));
-                adapter.add(new VotationI(properties.getProperty("Ice.ProgramName")), id);
+
+                // CAMBIO PRINCIPAL: Crear VotationI que actúa como proxy hacia CentralServer
+                VotationI votationServant = new VotationI(properties.getProperty("Ice.ProgramName"));
+                votationServant.setCommunicator(communicator); // Pasar el communicator
+
+                adapter.add(votationServant, id);
                 adapter.activate();
 
                 communicator.waitForShutdown();

@@ -1,47 +1,63 @@
 //
-// VotationI optimizado para alta carga con componentes mejorados
+// VotationI - MODIFICADO para actuar como proxy/balanceador hacia CentralServer
+// YA NO maneja ACKs ni votos directamente, solo reenvía al servidor central
 //
 
 import Demo.*;
+import Central.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class VotationI implements Votation
 {
-    private final String _name;
+    private final String departmentalServerName;
+    private CentralVotationPrx centralServerProxy;
+    private com.zeroc.Ice.Communicator communicator;
     private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
     public VotationI(String name)
     {
-        _name = name;
-        System.out.println("[" + _name + "] Servidor iniciado con componentes optimizados para alta carga");
+        this.departmentalServerName = name;
+
+        String timestamp = LocalDateTime.now().format(timeFormatter);
+        System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Servidor departamental iniciado como PROXY");
+        System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Configurado para conectar al servidor central...");
+    }
+
+    // Método para establecer el communicator (llamado desde DepartmentalServer)
+    public void setCommunicator(com.zeroc.Ice.Communicator communicator) {
+        this.communicator = communicator;
+
+        String timestamp = LocalDateTime.now().format(timeFormatter);
+        System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Conectando al servidor central...");
+
+        // Obtener proxy al servidor central
+        this.centralServerProxy = getCentralServerProxy();
+
+        if (centralServerProxy != null) {
+            System.out.println("[" + timestamp + "] [" + departmentalServerName + "] ✅ Conectado al servidor central");
+        } else {
+            System.err.println("[" + timestamp + "] [" + departmentalServerName + "] ❌ ERROR: No se pudo conectar al servidor central");
+        }
     }
 
     @Override
     public void sayHello(com.zeroc.Ice.Current current)
     {
-        System.out.println(_name + " says Hello World! (Optimizado para 1777 v/s)");
+        System.out.println(departmentalServerName + " says Hello World! (Proxy hacia CentralServer)");
     }
 
     @Override
     public void shutdown(com.zeroc.Ice.Current current)
     {
-        System.out.println(_name + " shutting down...");
-
-        // Shutdown graceful de componentes optimizados
-        try {
-            VoteManager.getInstance().shutdown();
-            ACKManager.getInstance().shutdown();
-            System.out.println("[" + _name + "] Componentes optimizados terminados correctamente");
-        } catch (Exception e) {
-            System.err.println("[" + _name + "] Error en shutdown: " + e.getMessage());
-        }
+        String timestamp = LocalDateTime.now().format(timeFormatter);
+        System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Shutting down proxy...");
 
         current.adapter.getCommunicator().shutdown();
     }
 
     @Override
-    public synchronized String sendVote(String citizenId, String candidateId, com.zeroc.Ice.Current current) throws AlreadyVotedException {
+    public String sendVote(String citizenId, String candidateId, com.zeroc.Ice.Current current) throws AlreadyVotedException {
         String timestamp = LocalDateTime.now().format(timeFormatter);
 
         if (citizenId == null || citizenId.trim().isEmpty() || candidateId == null || candidateId.trim().isEmpty()) {
@@ -51,104 +67,161 @@ public class VotationI implements Votation
         String cleanCitizenId = citizenId.trim();
         String cleanCandidateId = candidateId.trim();
 
-        // PASO 1: Verificación rápida con ACKManager optimizado
-        ACKManager ackManager = ACKManager.getInstance();
-        String existingACK = ackManager.getACK(cleanCitizenId);
+        System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Reenviando voto al servidor central");
+        System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Voto: " + cleanCitizenId + " -> " + cleanCandidateId);
 
-        if (existingACK != null) {
-            // Ciudadano ya tiene ACK - retornar el mismo
-            AlreadyVotedException ex = new AlreadyVotedException();
-            ex.ackId = existingACK;
-            throw ex;
+        // Verificar que tenemos conexión al servidor central
+        if (centralServerProxy == null) {
+            centralServerProxy = getCentralServerProxy();
+            if (centralServerProxy == null) {
+                throw new RuntimeException("Servidor central no disponible");
+            }
         }
 
-        // PASO 2: Procesar voto con VoteManager optimizado
-        VoteManager.VoteResult result = VoteManager.getInstance().receiveVote(cleanCitizenId, cleanCandidateId);
+        try {
+            // REENVAR AL SERVIDOR CENTRAL
+            String ackId = centralServerProxy.processVote(cleanCitizenId, cleanCandidateId, departmentalServerName);
 
-        if (result.success) {
-            // VOTO VÁLIDO - generar ACK único
-            String ackId = ackManager.getOrCreateACK(cleanCitizenId, _name);
-
-            // Log solo cada 100 votos para reducir overhead
-            if (VoteManager.getInstance().getStats().totalProcessed % 100 == 0) {
-                System.out.println("[" + timestamp + "] [" + _name + "] Voto #" +
-                        VoteManager.getInstance().getStats().totalProcessed + " - ACK: " + ackId);
-            }
-
+            System.out.println("[" + timestamp + "] [" + departmentalServerName + "] ACK recibido del servidor central: " + ackId);
             return ackId;
 
-        } else {
-            // VOTO DUPLICADO - obtener ACK existente
-            String ackId = ackManager.getOrCreateACK(cleanCitizenId, _name);
+        } catch (AlreadyVotedCentralException centralEx) {
+            // Convertir excepción central a excepción departamental
+            System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Duplicado detectado en servidor central");
+            System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Ciudadano " + centralEx.citizenId +
+                    " ya votó por " + centralEx.existingCandidate + " (ACK: " + centralEx.ackId + ")");
 
             AlreadyVotedException ex = new AlreadyVotedException();
-            ex.ackId = ackId;
+            ex.ackId = centralEx.ackId;
             throw ex;
-        }
-    }
 
-    /**
-     * Debug info optimizado
-     */
-    public void printDebugInfo() {
-        ACKManager.getInstance().printDebugInfo();
-        VoteManager.getInstance().printDebugInfo();
-    }
+        } catch (CentralServerUnavailableException centralEx) {
+            // Manejar indisponibilidad del servidor central
+            System.err.println("[" + timestamp + "] [" + departmentalServerName + "] Servidor central no disponible: " + centralEx.reason);
 
-    /**
-     * Verificar ACK usando componente optimizado
-     */
-    public boolean hasACK(String citizenId) {
-        return ACKManager.getInstance().hasACK(citizenId);
-    }
+            // Intentar reconectar
+            CentralVotationPrx newProxy = getCentralServerProxy();
+            if (newProxy != null) {
+                this.centralServerProxy = newProxy;
+                System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Reconexión exitosa, reintentando voto...");
+                try {
+                    String ackId = newProxy.processVote(cleanCitizenId, cleanCandidateId, departmentalServerName);
+                    return ackId;
+                } catch (Exception retryEx) {
+                    System.err.println("[" + timestamp + "] [" + departmentalServerName + "] Fallo en reintento: " + retryEx.getMessage());
+                }
+            }
 
-    /**
-     * Obtener ACK usando componente optimizado
-     */
-    public String getACK(String citizenId) {
-        return ACKManager.getInstance().getACK(citizenId);
-    }
+            throw new RuntimeException("Servidor central no disponible temporalmente");
 
-    /**
-     * Limpiar estado para testing
-     */
-    public static void clearACKState() {
-        try {
-            ACKManager.getInstance().clearForTesting();
-            System.out.println("[VotationI] Estado optimizado limpiado para testing");
         } catch (Exception e) {
-            System.err.println("[VotationI] Error limpiando estado: " + e.getMessage());
+            System.err.println("[" + timestamp + "] [" + departmentalServerName + "] Error comunicándose con servidor central: " + e.getMessage());
+            throw new RuntimeException("Error interno del sistema de votación");
         }
     }
 
     /**
-     * Estadísticas de performance
+     * Obtener proxy al servidor central con manejo de errores
      */
-    public VoteManager.VotingStats getVotingStats() {
-        return VoteManager.getInstance().getStats();
+    private CentralVotationPrx getCentralServerProxy() {
+        if (communicator == null) {
+            System.err.println("[" + departmentalServerName + "] Communicator no disponible");
+            return null;
+        }
+
+        try {
+            // Conectar directamente al servidor central en puerto 8888
+            String centralServerEndpoint = "CentralVotation:default -h localhost -p 8888";
+
+            com.zeroc.Ice.ObjectPrx baseProxy = communicator.stringToProxy(centralServerEndpoint);
+            CentralVotationPrx proxy = CentralVotationPrx.checkedCast(baseProxy);
+
+            if (proxy != null) {
+                // Verificar conectividad con ping
+                proxy.ping();
+                return proxy;
+            } else {
+                System.err.println("[" + departmentalServerName + "] No se pudo hacer cast a CentralVotationPrx");
+                return null;
+            }
+
+        } catch (Exception e) {
+            System.err.println("[" + departmentalServerName + "] Error conectando al servidor central: " + e.getMessage());
+            return null;
+        }
     }
 
     /**
-     * Estadísticas de ACK
+     * Verificar estado del servidor central
      */
-    public ACKManager.ACKStats getACKStats() {
-        return ACKManager.getInstance().getStats();
+    public String getCentralServerStatus() {
+        try {
+            if (centralServerProxy != null) {
+                return centralServerProxy.getServerStatus();
+            } else {
+                return "DESCONECTADO del servidor central";
+            }
+        } catch (Exception e) {
+            return "ERROR consultando servidor central: " + e.getMessage();
+        }
     }
 
     /**
-     * Estado completo del servidor
+     * Obtener estadísticas del servidor central
      */
-    public void printServerStatus() {
+    public void printCentralServerStats() {
         String timestamp = LocalDateTime.now().format(timeFormatter);
-        System.out.println("[" + timestamp + "] [" + _name + "] === SERVER STATUS ===");
 
-        VoteManager.VotingStats voteStats = getVotingStats();
-        ACKManager.ACKStats ackStats = getACKStats();
+        try {
+            if (centralServerProxy != null) {
+                String status = centralServerProxy.getServerStatus();
+                int totalVotes = centralServerProxy.getTotalVotesCount();
+                int uniqueVoters = centralServerProxy.getUniqueVotersCount();
 
-        System.out.println("Server: " + _name);
-        System.out.println("Vote Stats: " + voteStats.toString());
-        System.out.println("ACK Stats: " + ackStats.toString());
-        System.out.println("Throughput: " + String.format("%.2f", voteStats.throughputVotesPerSec) + " v/s");
-        System.out.println("===============================");
+                System.out.println("\n[" + timestamp + "] [" + departmentalServerName + "] === ESTADO DEL SERVIDOR CENTRAL ===");
+                System.out.println("Estado: " + status);
+                System.out.println("Total de votos: " + totalVotes);
+                System.out.println("Votantes únicos: " + uniqueVoters);
+                System.out.println("===============================");
+            } else {
+                System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Sin conexión al servidor central");
+            }
+        } catch (Exception e) {
+            System.err.println("[" + timestamp + "] [" + departmentalServerName + "] Error consultando servidor central: " + e.getMessage());
+        }
+    }
+
+    /**
+     * DEPRECATED: Métodos que ya no se usan (movidos a CentralServer)
+     */
+    @Deprecated
+    public void printDebugInfo() {
+        System.out.println("[" + departmentalServerName + "] DEBUG: Este servidor actúa como proxy hacia CentralServer");
+        printCentralServerStats();
+    }
+
+    @Deprecated
+    public boolean hasACK(String citizenId) {
+        try {
+            return centralServerProxy != null && centralServerProxy.hasVoted(citizenId);
+        } catch (Exception e) {
+            System.err.println("Error verificando voto en servidor central: " + e.getMessage());
+            return false;
+        }
+    }
+
+    @Deprecated
+    public String getACK(String citizenId) {
+        try {
+            return centralServerProxy != null ? centralServerProxy.getExistingACK(citizenId) : null;
+        } catch (Exception e) {
+            System.err.println("Error obteniendo ACK del servidor central: " + e.getMessage());
+            return null;
+        }
+    }
+
+    @Deprecated
+    public static void clearACKState() {
+        System.out.println("[VotationI] DEPRECATED: clearACKState() - usar CentralServer directamente");
     }
 }
