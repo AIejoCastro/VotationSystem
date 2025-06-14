@@ -1,6 +1,6 @@
 //
 // VotationI - MODIFICADO para actuar como proxy/balanceador hacia CentralServer
-// YA NO maneja ACKs ni votos directamente, solo reenvía al servidor central
+// CON DepartmentalReliableMessaging para comunicación confiable
 //
 
 import Demo.*;
@@ -13,6 +13,7 @@ public class VotationI implements Votation
     private final String departmentalServerName;
     private CentralVotationPrx centralServerProxy;
     private com.zeroc.Ice.Communicator communicator;
+    private Object messagingService; // Usar Object temporalmente para evitar errores de compilación
     private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
     public VotationI(String name)
@@ -21,7 +22,7 @@ public class VotationI implements Votation
 
         String timestamp = LocalDateTime.now().format(timeFormatter);
         System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Servidor departamental iniciado como PROXY");
-        System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Configurado para conectar al servidor central...");
+        System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Configurado para conectar al servidor central con reliable messaging...");
     }
 
     // Método para establecer el communicator (llamado desde DepartmentalServer)
@@ -29,6 +30,24 @@ public class VotationI implements Votation
         this.communicator = communicator;
 
         String timestamp = LocalDateTime.now().format(timeFormatter);
+        System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Inicializando DepartmentalReliableMessaging...");
+
+        // Inicializar reliable messaging service
+        try {
+            // Usar reflexión para evitar problemas de compilación
+            Class<?> serviceClass = Class.forName("DepartmentalReliableMessagingService");
+            java.lang.reflect.Method getInstance = serviceClass.getMethod("getInstance");
+            this.messagingService = getInstance.invoke(null);
+
+            java.lang.reflect.Method initialize = serviceClass.getMethod("initialize", com.zeroc.Ice.Communicator.class);
+            initialize.invoke(this.messagingService, communicator);
+
+            System.out.println("[" + timestamp + "] [" + departmentalServerName + "] ✅ DepartmentalReliableMessaging inicializado");
+        } catch (Exception e) {
+            System.err.println("[" + timestamp + "] [" + departmentalServerName + "] ❌ Error inicializando reliable messaging: " + e.getMessage());
+            this.messagingService = null;
+        }
+
         System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Conectando al servidor central...");
 
         // Obtener proxy al servidor central
@@ -37,14 +56,14 @@ public class VotationI implements Votation
         if (centralServerProxy != null) {
             System.out.println("[" + timestamp + "] [" + departmentalServerName + "] ✅ Conectado al servidor central");
         } else {
-            System.err.println("[" + timestamp + "] [" + departmentalServerName + "] ❌ ERROR: No se pudo conectar al servidor central");
+            System.err.println("[" + timestamp + "] [" + departmentalServerName + "] ⚠️  No se pudo conectar al servidor central - Reliable messaging activo");
         }
     }
 
     @Override
     public void sayHello(com.zeroc.Ice.Current current)
     {
-        System.out.println(departmentalServerName + " says Hello World! (Proxy hacia CentralServer)");
+        System.out.println(departmentalServerName + " says Hello World! (Proxy hacia CentralServer con Reliable Messaging)");
     }
 
     @Override
@@ -52,6 +71,16 @@ public class VotationI implements Votation
     {
         String timestamp = LocalDateTime.now().format(timeFormatter);
         System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Shutting down proxy...");
+
+        // Shutdown del reliable messaging
+        if (messagingService != null) {
+            try {
+                java.lang.reflect.Method shutdown = messagingService.getClass().getMethod("shutdown");
+                shutdown.invoke(messagingService);
+            } catch (Exception e) {
+                System.err.println("[" + timestamp + "] [" + departmentalServerName + "] Error en shutdown de reliable messaging: " + e.getMessage());
+            }
+        }
 
         current.adapter.getCommunicator().shutdown();
     }
@@ -67,23 +96,38 @@ public class VotationI implements Votation
         String cleanCitizenId = citizenId.trim();
         String cleanCandidateId = candidateId.trim();
 
-        System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Reenviando voto al servidor central");
+        System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Procesando voto hacia CentralServer");
         System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Voto: " + cleanCitizenId + " -> " + cleanCandidateId);
 
         // Verificar que tenemos conexión al servidor central
         if (centralServerProxy == null) {
             centralServerProxy = getCentralServerProxy();
-            if (centralServerProxy == null) {
-                throw new RuntimeException("Servidor central no disponible");
-            }
         }
 
         try {
-            // REENVAR AL SERVIDOR CENTRAL
-            String ackId = centralServerProxy.processVote(cleanCitizenId, cleanCandidateId, departmentalServerName);
+            // INTENTAR ENVÍO DIRECTO AL CENTRALSERVER
+            if (centralServerProxy != null) {
+                long startTime = System.currentTimeMillis();
+                String ackId = centralServerProxy.processVote(cleanCitizenId, cleanCandidateId, departmentalServerName);
+                long latency = System.currentTimeMillis() - startTime;
 
-            System.out.println("[" + timestamp + "] [" + departmentalServerName + "] ACK recibido del servidor central: " + ackId);
-            return ackId;
+                System.out.println("[" + timestamp + "] [" + departmentalServerName + "] ACK recibido del servidor central: " + ackId);
+
+                // Confirmar en reliable messaging si está activo
+                if (messagingService != null) {
+                    try {
+                        String voteKey = cleanCitizenId + "|" + cleanCandidateId + "|" + departmentalServerName;
+                        java.lang.reflect.Method confirmVoteACK = messagingService.getClass().getMethod("confirmVoteACK", String.class, String.class, long.class);
+                        confirmVoteACK.invoke(messagingService, voteKey, ackId, latency);
+                    } catch (Exception ex) {
+                        // Ignorar errores de confirmación
+                    }
+                }
+
+                return ackId;
+            } else {
+                throw new CentralServerUnavailableException("CentralServer no disponible", System.currentTimeMillis());
+            }
 
         } catch (AlreadyVotedCentralException centralEx) {
             // Convertir excepción central a excepción departamental
@@ -91,32 +135,72 @@ public class VotationI implements Votation
             System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Ciudadano " + centralEx.citizenId +
                     " ya votó por " + centralEx.existingCandidate + " (ACK: " + centralEx.ackId + ")");
 
+            // Confirmar en reliable messaging
+            if (messagingService != null) {
+                try {
+                    String voteKey = cleanCitizenId + "|" + cleanCandidateId + "|" + departmentalServerName;
+                    java.lang.reflect.Method confirmVoteACK = messagingService.getClass().getMethod("confirmVoteACK", String.class, String.class, long.class);
+                    confirmVoteACK.invoke(messagingService, voteKey, centralEx.ackId, 0L);
+                } catch (Exception ex) {
+                    // Ignorar errores de confirmación
+                }
+            }
+
             AlreadyVotedException ex = new AlreadyVotedException();
             ex.ackId = centralEx.ackId;
             throw ex;
 
         } catch (CentralServerUnavailableException centralEx) {
-            // Manejar indisponibilidad del servidor central
-            System.err.println("[" + timestamp + "] [" + departmentalServerName + "] Servidor central no disponible: " + centralEx.reason);
+            // ACTIVAR RELIABLE MESSAGING
+            System.out.println("[" + timestamp + "] [" + departmentalServerName + "] CentralServer no disponible: " + centralEx.reason);
+            System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Activando DepartmentalReliableMessaging...");
 
-            // Intentar reconectar
-            CentralVotationPrx newProxy = getCentralServerProxy();
-            if (newProxy != null) {
-                this.centralServerProxy = newProxy;
-                System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Reconexión exitosa, reintentando voto...");
-                try {
-                    String ackId = newProxy.processVote(cleanCitizenId, cleanCandidateId, departmentalServerName);
-                    return ackId;
-                } catch (Exception retryEx) {
-                    System.err.println("[" + timestamp + "] [" + departmentalServerName + "] Fallo en reintento: " + retryEx.getMessage());
-                }
-            }
+            return handleOfflineVote(cleanCitizenId, cleanCandidateId, centralEx.reason);
 
-            throw new RuntimeException("Servidor central no disponible temporalmente");
+        } catch (com.zeroc.Ice.LocalException localEx) {
+            // ERROR DE CONEXIÓN - ACTIVAR RELIABLE MESSAGING
+            System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Error de conexión con CentralServer: " + localEx.getMessage());
+            System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Activando DepartmentalReliableMessaging...");
+
+            // Resetear proxy
+            centralServerProxy = null;
+
+            return handleOfflineVote(cleanCitizenId, cleanCandidateId, "Error de conexión: " + localEx.getMessage());
 
         } catch (Exception e) {
-            System.err.println("[" + timestamp + "] [" + departmentalServerName + "] Error comunicándose con servidor central: " + e.getMessage());
-            throw new RuntimeException("Error interno del sistema de votación");
+            System.err.println("[" + timestamp + "] [" + departmentalServerName + "] Error inesperado: " + e.getMessage());
+
+            return handleOfflineVote(cleanCitizenId, cleanCandidateId, "Error inesperado: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Manejar voto offline usando DepartmentalReliableMessaging
+     */
+    private String handleOfflineVote(String citizenId, String candidateId, String reason) throws AlreadyVotedException {
+        String timestamp = LocalDateTime.now().format(timeFormatter);
+
+        if (messagingService == null) {
+            throw new RuntimeException("Servidor central no disponible y reliable messaging no inicializado");
+        }
+
+        try {
+            // Guardar voto para procesamiento garantizado usando reflexión
+            java.lang.reflect.Method storeOfflineVote = messagingService.getClass().getMethod("storeOfflineVoteWithACK", String.class, String.class, String.class);
+            String voteKey = (String) storeOfflineVote.invoke(messagingService, citizenId, candidateId, departmentalServerName);
+
+            System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Voto guardado en DepartmentalReliableMessaging");
+            System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Será procesado automáticamente cuando CentralServer esté disponible");
+
+            // Generar ACK temporal departamental
+            String tempACK = "DEPT-TEMP-" + departmentalServerName.substring(Math.max(0, departmentalServerName.length()-2)) +
+                    "-" + Long.toHexString(System.currentTimeMillis()).toUpperCase();
+
+            return tempACK;
+
+        } catch (Exception e) {
+            System.err.println("[" + timestamp + "] [" + departmentalServerName + "] Error crítico en reliable messaging: " + e.getMessage());
+            throw new RuntimeException("Sistema temporalmente no disponible");
         }
     }
 
@@ -146,7 +230,7 @@ public class VotationI implements Votation
             }
 
         } catch (Exception e) {
-            System.err.println("[" + departmentalServerName + "] Error conectando al servidor central: " + e.getMessage());
+            // No loggear error aquí - es normal durante indisponibilidad
             return null;
         }
     }
@@ -189,6 +273,16 @@ public class VotationI implements Votation
         } catch (Exception e) {
             System.err.println("[" + timestamp + "] [" + departmentalServerName + "] Error consultando servidor central: " + e.getMessage());
         }
+
+        // Mostrar estado del reliable messaging
+        if (messagingService != null) {
+            try {
+                java.lang.reflect.Method printStatus = messagingService.getClass().getMethod("printStatus");
+                printStatus.invoke(messagingService);
+            } catch (Exception e) {
+                System.err.println("[" + timestamp + "] [" + departmentalServerName + "] Error consultando reliable messaging: " + e.getMessage());
+            }
+        }
     }
 
     /**
@@ -196,7 +290,7 @@ public class VotationI implements Votation
      */
     @Deprecated
     public void printDebugInfo() {
-        System.out.println("[" + departmentalServerName + "] DEBUG: Este servidor actúa como proxy hacia CentralServer");
+        System.out.println("[" + departmentalServerName + "] DEBUG: Este servidor actúa como proxy hacia CentralServer con DepartmentalReliableMessaging");
         printCentralServerStats();
     }
 

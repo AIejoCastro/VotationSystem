@@ -51,10 +51,17 @@ subprojects {
         // NUEVO: CentralServer como dependencia para departmentalServer
         if (project.name == 'departmentalServer') {
             implementation project(':centralServer')
+            implementation project(':departmentalReliableMessaging')
         }
 
-        // NUEVO: testFramework necesita acceso a centralServer
+        // NUEVO: testFramework necesita acceso a centralServer y departmentalReliableMessaging
         if (project.name == 'testFramework') {
+            implementation project(':centralServer')
+            implementation project(':departmentalReliableMessaging')
+        }
+
+        // NUEVO: departmentalReliableMessaging necesita acceso a centralServer para las interfaces
+        if (project.name == 'departmentalReliableMessaging') {
             implementation project(':centralServer')
         }
     }
@@ -74,12 +81,51 @@ subprojects {
                         "Main-Class": "CentralServer",
                         "Class-Path": configurations.runtimeClasspath.resolve().collect { it.toURI() }.join(' ')
                 )
+            } else if (project.name == 'departmentalReliableMessaging') {
+                attributes(
+                        "Main-Class": "DepartmentalReliableMessagingService",
+                        "Class-Path": configurations.runtimeClasspath.resolve().collect { it.toURI() }.join(' ')
+                )
+            } else if (project.name == 'votingSite') {
+                attributes(
+                        "Main-Class": "VotingSite",
+                        "Class-Path": configurations.runtimeClasspath.resolve().collect { it.toURI() }.join(' ')
+                )
+            } else if (project.name == 'votingMachine') {
+                attributes(
+                        "Main-Class": "VotingMachine",
+                        "Class-Path": configurations.runtimeClasspath.resolve().collect { it.toURI() }.join(' ')
+                )
+            } else if (project.name == 'departmentalServer') {
+                attributes(
+                        "Main-Class": "DepartmentalServer",
+                        "Class-Path": configurations.runtimeClasspath.resolve().collect { it.toURI() }.join(' ')
+                )
+            } else if (project.name == 'testFramework') {
+                attributes(
+                        "Main-Class": "TestRunner",
+                        "Class-Path": configurations.runtimeClasspath.resolve().collect { it.toURI() }.join(' ')
+                )
             } else {
                 attributes(
                         "Main-Class": project.name.capitalize(),
                         "Class-Path": configurations.runtimeClasspath.resolve().collect { it.toURI() }.join(' ')
                 )
             }
+        }
+    }
+
+    //
+    // Task personalizada para mostrar dependencias de cada proyecto
+    //
+    task showDependencies {
+        doLast {
+            println "Proyecto: ${project.name}"
+            println "Dependencias:"
+            configurations.implementation.dependencies.each { dep ->
+                println "  - ${dep.name}"
+            }
+            println ""
         }
     }
 }

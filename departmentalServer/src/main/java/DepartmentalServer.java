@@ -1,6 +1,6 @@
 //
 // DepartmentalServer - MODIFICADO para actuar como balanceador hacia CentralServer
-// YA NO maneja base de datos, solo distribuye carga hacia el servidor central
+// CON DepartmentalReliableMessaging para comunicación confiable
 //
 
 public class DepartmentalServer
@@ -17,6 +17,15 @@ public class DepartmentalServer
         try(com.zeroc.Ice.Communicator communicator = com.zeroc.Ice.Util.initialize(args, extraArgs))
         {
             communicator.getProperties().setProperty("Ice.Default.Package", "com.zeroc.demos.IceGrid.simple");
+
+            // Cargar configuración del DepartmentalReliableMessaging
+            try {
+                communicator.getProperties().load("departmentalReliableMessaging/src/main/resources/config.departmentalReliableMessaging");
+                System.out.println("[DepartmentalServer] Configuración DepartmentalReliableMessaging cargada correctamente");
+            } catch (Exception e) {
+                System.out.println("[DepartmentalServer] Usando configuración por defecto para DepartmentalReliableMessaging");
+            }
+
             //
             // Install shutdown hook to (also) destroy communicator during JVM shutdown.
             // This ensures the communicator gets destroyed when the user interrupts the application with Ctrl-C.
@@ -34,7 +43,7 @@ public class DepartmentalServer
                 com.zeroc.Ice.Properties properties = communicator.getProperties();
                 com.zeroc.Ice.Identity id = com.zeroc.Ice.Util.stringToIdentity(properties.getProperty("Identity"));
 
-                // CAMBIO PRINCIPAL: Crear VotationI que actúa como proxy hacia CentralServer
+                // CAMBIO PRINCIPAL: Crear VotationI que actúa como proxy hacia CentralServer con reliable messaging
                 VotationI votationServant = new VotationI(properties.getProperty("Ice.ProgramName"));
                 votationServant.setCommunicator(communicator); // Pasar el communicator
 
