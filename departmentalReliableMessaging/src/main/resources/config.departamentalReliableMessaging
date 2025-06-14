@@ -1,0 +1,63 @@
+#
+# Configuración DepartmentalReliableMessaging optimizada para alta carga
+# Debe manejar comunicación confiable entre DepartmentalServer y CentralServer
+#
+
+# RETRY INTERVAL optimizado para CentralServer
+DepartmentalReliableMessaging.RetryInterval=5000
+
+# PATHS optimizados para I/O rápido
+DepartmentalReliableMessaging.OfflineQueuePath=config/db/departmental-pending-votes.csv
+DepartmentalReliableMessaging.ACKFilePath=config/db/departmental-vote-acks.log
+
+# LOGGING para debugging de comunicación con CentralServer
+DepartmentalReliableMessaging.VerboseLogging=1
+
+# NO necesita IceGrid porque se conecta directamente al CentralServer
+# CentralServer está en puerto 8888
+
+# THREAD POOLS para DepartmentalReliableMessaging
+Ice.ThreadPool.Server.Size=10
+Ice.ThreadPool.Server.SizeMax=50
+Ice.ThreadPool.Client.Size=15
+Ice.ThreadPool.Client.SizeMax=75
+
+# NETWORK optimizations para comunicación con CentralServer
+Ice.Override.Timeout=12000
+Ice.RetryIntervals=0 200 500 1000 2000
+Ice.Connection.IdleTimeout=120
+
+# BUFFER optimizations
+Ice.MessageSizeMax=16777216
+Ice.CacheMessageBuffers=1
+
+# WORKER pool configuration para comunicación con CentralServer
+DepartmentalReliableMessaging.WorkerThreads=4
+DepartmentalReliableMessaging.MaxRetries=100
+DepartmentalReliableMessaging.BatchSize=5
+DepartmentalReliableMessaging.QueueProcessingInterval=2000
+
+# FILE I/O optimization
+DepartmentalReliableMessaging.BufferedWrite=true
+DepartmentalReliableMessaging.SyncInterval=3000
+
+# PERFORMANCE monitoring
+DepartmentalReliableMessaging.EnableMetrics=true
+DepartmentalReliableMessaging.MetricsInterval=20000
+
+# ERROR HANDLING bajo carga para comunicación con CentralServer
+DepartmentalReliableMessaging.MaxQueueSize=5000
+DepartmentalReliableMessaging.DropOldestOnOverflow=false
+DepartmentalReliableMessaging.AlertThreshold=2000
+
+# GC optimization
+Ice.GC.Interval=0
+
+# LOGGING minimal para performance
+Ice.Trace.ThreadPool=0
+Ice.Trace.Network=0
+Ice.Warn.Connections=0
+
+# TARGET específico
+DepartmentalReliableMessaging.TargetServer=CentralServer
+DepartmentalReliableMessaging.TargetEndpoint=CentralVotation:default -h localhost -p 8888

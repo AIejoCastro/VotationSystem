@@ -1,0 +1,79 @@
+#
+# Configuración para CentralServer - Servidor único con acceso a base de datos
+# INDEPENDIENTE de IceGrid - no necesita registry
+#
+
+# ADAPTADOR principal del servidor central (SIN IceGrid)
+CentralVotation.Endpoints=default -h localhost -p 8888
+
+# THREAD POOLS optimizados para servidor central único
+# Debe manejar TODA la carga de 1,777 votos/segundo
+Ice.ThreadPool.Server.Size=100
+Ice.ThreadPool.Server.SizeMax=500
+Ice.ThreadPool.Server.SizeWarn=400
+Ice.ThreadPool.Server.ThreadIdleTime=60
+
+Ice.ThreadPool.Client.Size=20
+Ice.ThreadPool.Client.SizeMax=100
+
+# THREAD POOL específico para CentralVotation
+CentralVotation.ThreadPool.Size=80
+CentralVotation.ThreadPool.SizeMax=400
+CentralVotation.ThreadPool.SizeWarn=320
+
+# NETWORK optimizations para alta carga centralizada
+Ice.ACM.Heartbeat=3
+Ice.Override.Timeout=15000
+Ice.RetryIntervals=-1
+
+# BUFFER SIZES para throughput masivo
+Ice.MessageSizeMax=16777216
+Ice.UDP.RcvSize=262144
+Ice.UDP.SndSize=262144
+Ice.TCP.RcvSize=131072
+Ice.TCP.SndSize=131072
+
+# PERFORMANCE optimizations críticas
+Ice.CacheMessageBuffers=1
+
+# PACKAGE mapping
+Ice.Default.Package=com.zeroc.demos.IceGrid.central
+
+# DATABASE optimizations para I/O intensivo
+# Configuración de buffer para escritura masiva de archivos
+java.io.tmpdir=/tmp
+
+# LOGGING mínimo para máximo performance
+Ice.Trace.ThreadPool=0
+Ice.Trace.Network=0
+Ice.Trace.Protocol=0
+Ice.Warn.Connections=0
+
+# MONITORING para servidor central
+Ice.PrintAdapterReady=1
+Ice.PrintProcessId=1
+
+# IDENTITY del servidor central
+Identity=CentralVotation
+
+# PROGRAMA nombre
+Ice.ProgramName=CentralServer-1
+
+# CONNECTION optimization para múltiples departamentales
+Ice.Override.ConnectTimeout=10000
+Ice.Override.CloseTimeout=5000
+
+# NUEVAS: Configuraciones específicas del servidor central
+Central.MaxConcurrentVotes=2000
+Central.VoteProcessingTimeout=30000
+Central.ACKGenerationTimeout=5000
+Central.DatabaseFlushInterval=2000
+
+# SEGURIDAD básica
+Central.AllowedClients=*
+Central.RequireAuthentication=false
+
+# BACKUP automático (opcional)
+Central.AutoBackup=false
+Central.BackupInterval=3600000
+Central.BackupPath=config/db/backup/
