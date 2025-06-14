@@ -11,6 +11,7 @@
             <option value="$PROJECT_DIR$/centralServer" />
             <option value="$PROJECT_DIR$/departmentalReliableMessaging" />
             <option value="$PROJECT_DIR$/departmentalServer" />
+            <option value="$PROJECT_DIR$/queryProxy" />
             <option value="$PROJECT_DIR$/reliableMessaging" />
             <option value="$PROJECT_DIR$/testFramework" />
             <option value="$PROJECT_DIR$/votingMachine" />

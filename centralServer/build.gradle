@@ -1,0 +1,12 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+application {
+    mainClass = 'Query.QueryServer' // 👈 Cambia esto si tu clase main se llama distinto
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}

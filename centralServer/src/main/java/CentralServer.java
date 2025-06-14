@@ -2,6 +2,8 @@
 // CentralServer - Servidor Central Único con acceso exclusivo a base de datos
 //
 
+import Query.QueryStationI;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -75,7 +77,12 @@ public class CentralServer {
             CentralVotationI centralServant = new CentralVotationI(serverName);
             adapter.add(centralServant, serverId);
 
-            // Activar adaptador
+            // Crear e instalar el servant de consultas
+            QueryStationI queryServant = new QueryStationI();
+            com.zeroc.Ice.Identity queryId = com.zeroc.Ice.Util.stringToIdentity("QueryStation");
+            adapter.add(queryServant, queryId);
+
+            // Activar adaptador (votationI)
             adapter.activate();
 
             timestamp = LocalDateTime.now().format(timeFormatter);
