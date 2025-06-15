@@ -3,6 +3,7 @@
 // Toda la lógica de votación centralizada con acceso exclusivo a base de datos
 //
 
+import java.io.File;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.*;
@@ -53,6 +54,9 @@ public class CentralVoteManager {
         for (int i = 0; i < WRITER_THREAD_COUNT; i++) {
             writerPool.submit(new CentralVoteWriter(queue));
         }
+
+        // NUEVA: Cargar votos existentes antes de iniciar métricas
+        loadExistingVotes();
 
         // NUEVA: Thread para métricas periódicas
         startMetricsReporter();
@@ -355,8 +359,122 @@ public class CentralVoteManager {
     }
 
     /**
-     * Estadísticas mejoradas con métricas de performance
+     * Cargar votos existentes desde el archivo CSV al inicializar
      */
+    private void loadExistingVotes() {
+        System.out.println("[CentralVoteManager] Cargando votos existentes...");
+
+        File voteFile = new File("config/db/central-votes.csv");
+        if (!voteFile.exists()) {
+            System.out.println("[CentralVoteManager] No hay archivo de votos previo - iniciando limpio");
+            return;
+        }
+
+        int loadedVotes = 0;
+        int duplicatesIgnored = 0;
+
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(voteFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+
+                String[] parts = line.split(",");
+                if (parts.length >= 2) {
+                    String citizenId = parts[0].trim();
+                    String candidateId = parts[1].trim();
+
+                    // Determinar partición
+                    int partition = Math.abs(citizenId.hashCode()) % PARTITION_COUNT;
+                    Map<String, String> citizenVotes = citizenVotesPartitions[partition];
+
+                    // Verificar si ya existe (para manejar duplicados en archivo)
+                    if (!citizenVotes.containsKey(citizenId)) {
+                        citizenVotes.put(citizenId, candidateId);
+                        loadedVotes++;
+                    } else {
+                        duplicatesIgnored++;
+                    }
+                }
+            }
+
+            // Actualizar contador de votos procesados
+            totalVotes.set(loadedVotes);
+
+            System.out.println("[CentralVoteManager] ✅ Carga completada:");
+            System.out.println("   Votos cargados: " + loadedVotes);
+            System.out.println("   Duplicados ignorados: " + duplicatesIgnored);
+            System.out.println("   Votantes únicos: " + getAllVoters().size());
+
+        } catch (java.io.IOException e) {
+            System.err.println("[CentralVoteManager] Error cargando votos existentes: " + e.getMessage());
+            System.out.println("[CentralVoteManager] Continuando con estado limpio");
+        }
+    }
+    public java.util.Map<String, Integer> getVotesByCandidate() {
+        java.util.Map<String, Integer> voteCount = new java.util.HashMap<>();
+
+        for (int i = 0; i < PARTITION_COUNT; i++) {
+            Map<String, String> partition = citizenVotesPartitions[i];
+            StampedLock lock = partitionLocks[i];
+
+            long stamp = lock.readLock();
+            try {
+                for (String candidateId : partition.values()) {
+                    voteCount.merge(candidateId, 1, Integer::sum);
+                }
+            } finally {
+                lock.unlockRead(stamp);
+            }
+        }
+
+        return voteCount;
+    }
+
+    /**
+     * Obtener estadísticas detalladas para reportes
+     */
+    public DetailedVotingStats getDetailedStats() {
+        java.util.Map<String, Integer> votesByCandidate = getVotesByCandidate();
+        VotingStats basicStats = getStats();
+
+        return new DetailedVotingStats(basicStats, votesByCandidate);
+    }
+
+    /**
+     * Estadísticas detalladas con información de candidatos
+     */
+    public static class DetailedVotingStats {
+        public final VotingStats basicStats;
+        public final java.util.Map<String, Integer> votesByCandidate;
+        public final int totalValidVotes;
+        public final String winningCandidate;
+        public final int winningVotes;
+
+        public DetailedVotingStats(VotingStats basicStats, java.util.Map<String, Integer> votesByCandidate) {
+            this.basicStats = basicStats;
+            this.votesByCandidate = votesByCandidate;
+            this.totalValidVotes = votesByCandidate.values().stream().mapToInt(Integer::intValue).sum();
+
+            // Determinar ganador
+            java.util.Map.Entry<String, Integer> winner = votesByCandidate.entrySet().stream()
+                    .max(java.util.Map.Entry.comparingByValue())
+                    .orElse(null);
+
+            if (winner != null) {
+                this.winningCandidate = winner.getKey();
+                this.winningVotes = winner.getValue();
+            } else {
+                this.winningCandidate = null;
+                this.winningVotes = 0;
+            }
+        }
+
+        @Override
+        public String toString() {
+            return String.format("DetailedVotingStats{totalVoters=%d, totalValidVotes=%d, winner='%s' (%d votos)}",
+                    basicStats.totalVoters, totalValidVotes, winningCandidate, winningVotes);
+        }
+    }
     public static class VotingStats {
         public final int totalVoters;
         public final int pendingVotes;

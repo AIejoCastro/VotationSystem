@@ -1,9 +1,12 @@
 //
-// Interface para comunicación DepartmentalServer -> CentralServer
-// El servidor central maneja toda la lógica de base de datos
+// Interface extendida para comunicación DepartmentalServer -> CentralServer
+// Con soporte para notificaciones de candidatos
 //
 
 #pragma once
+
+#include "CandidateNotification.ice"
+
 module Central
 {
     exception AlreadyVotedCentralException {
@@ -19,7 +22,7 @@ module Central
 
     interface CentralVotation
     {
-        // Operaciones principales
+        // Operaciones principales de votación
         string processVote(string citizenId, string candidateId, string departmentalServerId)
             throws AlreadyVotedCentralException, CentralServerUnavailableException;
 
@@ -33,6 +36,16 @@ module Central
         int getTotalVotesCount() throws CentralServerUnavailableException;
 
         int getUniqueVotersCount() throws CentralServerUnavailableException;
+
+        // Operaciones de gestión de candidatos
+        void registerVotingMachine(string machineId, CandidateNotification::VotingMachineCallback* callback)
+            throws CentralServerUnavailableException;
+
+        CandidateNotification::CandidateListResponse getCurrentCandidates()
+            throws CentralServerUnavailableException;
+
+        void unregisterVotingMachine(string machineId)
+            throws CentralServerUnavailableException;
 
         // Operaciones administrativas
         void ping();

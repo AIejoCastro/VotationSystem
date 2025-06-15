@@ -39,6 +39,9 @@ public class CentralACKManager {
         // NUEVA: Cargar ACKs usando lectura optimizada
         loadACKsOptimized();
 
+        // NUEVA: Sincronizar con votos existentes si es necesario
+        synchronizeWithExistingVotes();
+
         // NUEVA: Iniciar background thread para flush periódico
         startBackgroundFlusher();
 
@@ -390,8 +393,63 @@ public class CentralACKManager {
     }
 
     /**
-     * Clase de estadísticas mejorada
+     * Sincronizar ACKs con votos existentes
+     * Genera ACKs para ciudadanos que ya votaron pero no tienen ACK
      */
+    private void synchronizeWithExistingVotes() {
+        System.out.println("[CentralACKManager] Sincronizando con votos existentes...");
+
+        try {
+            // Leer archivo de votos para encontrar ciudadanos sin ACK
+            File voteFile = new File("config/db/central-votes.csv");
+            if (!voteFile.exists()) {
+                return;
+            }
+
+            int acksGenerated = 0;
+            java.util.Set<String> processedCitizens = new java.util.HashSet<>();
+
+            try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(voteFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.trim().isEmpty()) continue;
+
+                    String[] parts = line.split(",");
+                    if (parts.length >= 2) {
+                        String citizenId = parts[0].trim();
+
+                        // Evitar procesar el mismo ciudadano múltiples veces
+                        if (processedCitizens.contains(citizenId)) {
+                            continue;
+                        }
+                        processedCitizens.add(citizenId);
+
+                        // Si el ciudadano no tiene ACK, generar uno
+                        if (!citizenACKs.containsKey(citizenId)) {
+                            String ackId = generateOptimizedACK("SYNC-RESTART");
+                            citizenACKs.put(citizenId, ackId);
+
+                            // Agregar a buffer para persistir
+                            addToWriteBuffer(citizenId, ackId);
+                            acksGenerated++;
+                        }
+                    }
+                }
+            }
+
+            if (acksGenerated > 0) {
+                // Forzar flush para persistir ACKs generados
+                flushWriteBuffer();
+                System.out.println("[CentralACKManager] ✅ Sincronización completada: " +
+                        acksGenerated + " ACKs generados para votos existentes");
+            } else {
+                System.out.println("[CentralACKManager] ✅ Sincronización completada: Sin ACKs faltantes");
+            }
+
+        } catch (java.io.IOException e) {
+            System.err.println("[CentralACKManager] Error en sincronización: " + e.getMessage());
+        }
+    }
     public static class ACKStats {
         public final int totalACKs;
         public final int pendingWrites;
