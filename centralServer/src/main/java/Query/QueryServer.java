@@ -5,8 +5,10 @@ import com.zeroc.Ice.Object;
 
 public class QueryServer {
     public static void main(String[] args) {
-        try (Communicator communicator = Util.initialize(args)) {
-            ObjectAdapter adapter = communicator.createObjectAdapterWithEndpoints("QueryAdapter", "default -p 8888");
+        try (Communicator communicator = Util.initialize(args, "config.cfg")) {
+            ObjectAdapter adapter = communicator.createObjectAdapterWithEndpoints(
+                    "QueryAdapter", "tcp -h 0.0.0.0 -p 8888"
+            ); //Escucha desde cualquier IP
 
             QueryStationI servant = new QueryStationI();
             adapter.add((Object) servant, Util.stringToIdentity("QueryStation"));

@@ -114,7 +114,7 @@ public class DepartmentalVoteRetryWorker extends Thread {
             System.out.println("[DepartmentalReliableMessaging] CentralServer no disponible");
             System.out.println("[DepartmentalReliableMessaging] Intento " + consecutiveFailures +
                     " fallido - Reintentando en " + (retryInterval/1000) + " segundos...");
-            System.out.println("[DepartmentalReliableMessaging] GARANTÍA: Seguiremos intentando hasta que TODOS los votos lleguen a CentralServer");
+            System.out.println("[DepartmentalReliableMessaging] GARANTIA: Seguiremos intentando hasta que TODOS los votos lleguen a CentralServer");
 
             // Salir para que el run() maneje el sleep
             return;
@@ -122,7 +122,7 @@ public class DepartmentalVoteRetryWorker extends Thread {
 
         // Si conseguimos un proxy, loggear recuperación
         if (consecutiveFailures > 0) {
-            System.out.println("[DepartmentalReliableMessaging] ¡CENTRALSERVER RECUPERADO! Después de " +
+            System.out.println("[DepartmentalReliableMessaging] ¡CENTRALSERVER RECUPERADO! Despues de " +
                     consecutiveFailures + " intentos fallidos");
             consecutiveFailures = 0;
         }
@@ -159,7 +159,7 @@ public class DepartmentalVoteRetryWorker extends Thread {
 
             } catch (CentralServerUnavailableException e) {
                 System.out.println("[DepartmentalReliableMessaging] CentralServer temporalmente no disponible: " + e.reason);
-                System.out.println("[DepartmentalReliableMessaging] Reintentando todos los votos en próxima iteración");
+                System.out.println("[DepartmentalReliableMessaging] Reintentando todos los votos en proxima iteracion");
                 errorCount++;
                 consecutiveFailures++; // Contar este como un fallo
 
@@ -167,7 +167,7 @@ public class DepartmentalVoteRetryWorker extends Thread {
                 break;
 
             } catch (LocalException e) {
-                System.out.println("[DepartmentalReliableMessaging] Error de conexión con CentralServer: " + e.getMessage());
+                System.out.println("[DepartmentalReliableMessaging] Error de conexion con CentralServer: " + e.getMessage());
                 System.out.println("[DepartmentalReliableMessaging] Posible fallo de CentralServer - reintentando todos los votos");
                 errorCount++;
                 consecutiveFailures++; // Contar este como un fallo
@@ -181,7 +181,7 @@ public class DepartmentalVoteRetryWorker extends Thread {
         if (errorCount == 0) {
             // ¡TODOS los votos fueron procesados exitosamente!
             queue.clear();
-            System.out.println("[DepartmentalReliableMessaging] ¡ÉXITO TOTAL! Todos los votos entregados a CentralServer");
+            System.out.println("[DepartmentalReliableMessaging] ¡EXITO TOTAL! Todos los votos entregados a CentralServer");
             System.out.println("[DepartmentalReliableMessaging] Entregados: " + successCount +
                     " nuevos, " + duplicateCount + " duplicados confirmados");
             // No logging de "volviendo a standby" aquí - lo maneja run()
@@ -191,7 +191,7 @@ public class DepartmentalVoteRetryWorker extends Thread {
                     " exitosos, " + duplicateCount + " duplicados");
             System.out.println("[DepartmentalReliableMessaging] Reintentos pendientes: " +
                     (votes.size() - successCount - duplicateCount) + " votos");
-            System.out.println("[DepartmentalReliableMessaging] GARANTÍA: Continuaremos hasta entregar TODOS los votos a CentralServer");
+            System.out.println("[DepartmentalReliableMessaging] GARANTIA: Continuaremos hasta entregar TODOS los votos a CentralServer");
         }
     }
 
@@ -236,7 +236,7 @@ public class DepartmentalVoteRetryWorker extends Thread {
         if (hasVotesPending) {
             System.out.println("[DepartmentalReliableMessaging] ADVERTENCIA: Deteniendo worker con " + queue.size() +
                     " votos pendientes hacia CentralServer");
-            System.out.println("[DepartmentalReliableMessaging] Los votos se procesarán en el próximo inicio");
+            System.out.println("[DepartmentalReliableMessaging] Los votos se procesaran en el proximo inicio");
         }
         running = false;
         this.interrupt();

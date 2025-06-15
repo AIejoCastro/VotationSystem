@@ -1,0 +1,36 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+version = 'unspecified'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+// ESTO AGREGA EL MAIN-CLASS PARA EL JAR
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'loadtester.Main'
+        )
+    }
+}
+
+shadowJar {
+    manifest {
+        attributes(
+                'Main-Class': 'loadtester.Main'
+        )
+    }
+}

@@ -138,7 +138,7 @@ public class VotingMachine {
 
     private static void processVote(Scanner scanner) {
         System.out.println("\nPROCESO DE VOTACIÓN");
-        System.out.println("═══════════════════════════");
+        System.out.println("-----------------------------------");
 
         // Solicitar cédula
         System.out.print("Ingrese su número de cédula: ");
@@ -258,7 +258,7 @@ public class VotingMachine {
 
     private static void showSystemStatus() {
         System.out.println("\nESTADO DEL SISTEMA");
-        System.out.println("═══════════════════════");
+        System.out.println("--------------------------");
 
         try {
             String status = votingProxy.getSystemStatus();
@@ -280,7 +280,7 @@ public class VotingMachine {
 
     private static void showPendingVotes() {
         System.out.println("\nVOTOS PENDIENTES");
-        System.out.println("═══════════════════════");
+        System.out.println("------------------------");
 
         try {
             int pendingCount = votingProxy.getPendingVotesCount();
