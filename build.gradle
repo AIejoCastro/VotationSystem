@@ -25,7 +25,13 @@ subprojects {
     slice {
         iceHome = "/opt/homebrew/opt/ice"
         java {
-            files = [file("../Votation.ice"), file("../VotingProxy.ice"), file("../CentralVotation.ice")]
+            // ACTUALIZADO: Incluir nueva interfaz de notificaciones
+            files = [
+                    file("../Votation.ice"),
+                    file("../VotingProxy.ice"),
+                    file("../CentralVotation.ice"),
+                    file("../CandidateNotification.ice")  // NUEVA
+            ]
         }
     }
 
@@ -48,20 +54,25 @@ subprojects {
             implementation project(':reliableMessaging')
         }
 
-        // NUEVO: CentralServer como dependencia para departmentalServer
+        // CentralServer como dependencia para departmentalServer
         if (project.name == 'departmentalServer') {
             implementation project(':centralServer')
             implementation project(':departmentalReliableMessaging')
         }
 
-        // NUEVO: testFramework necesita acceso a centralServer y departmentalReliableMessaging
+        // testFramework necesita acceso a centralServer y departmentalReliableMessaging
         if (project.name == 'testFramework') {
             implementation project(':centralServer')
             implementation project(':departmentalReliableMessaging')
         }
 
-        // NUEVO: departmentalReliableMessaging necesita acceso a centralServer para las interfaces
+        // departmentalReliableMessaging necesita acceso a centralServer para las interfaces
         if (project.name == 'departmentalReliableMessaging') {
+            implementation project(':centralServer')
+        }
+
+        // NUEVO: votingMachine necesita acceso a centralServer para notificaciones
+        if (project.name == 'votingMachine') {
             implementation project(':centralServer')
         }
     }
@@ -93,6 +104,7 @@ subprojects {
                 )
             } else if (project.name == 'votingMachine') {
                 attributes(
+                        // ACTUALIZADO: Nueva clase principal mejorada
                         "Main-Class": "VotingMachine",
                         "Class-Path": configurations.runtimeClasspath.resolve().collect { it.toURI() }.join(' ')
                 )
@@ -111,6 +123,33 @@ subprojects {
                         "Main-Class": project.name.capitalize(),
                         "Class-Path": configurations.runtimeClasspath.resolve().collect { it.toURI() }.join(' ')
                 )
+            }
+        }
+    }
+
+    //
+    // NUEVA: Task para generar código Ice automáticamente
+    //
+    task generateIceCode {
+        dependsOn 'compileSlice'
+        doLast {
+            println "Código Ice generado para ${project.name}"
+        }
+    }
+
+    //
+    // NUEVA: Task para verificar interfaces Ice
+    //
+    task verifyIceInterfaces {
+        doLast {
+            def sliceFiles = slice.java.files
+            println "Verificando interfaces Ice para ${project.name}:"
+            sliceFiles.each { file ->
+                if (file.exists()) {
+                    println "  ✅ ${file.name}"
+                } else {
+                    println "  ❌ ${file.name} - NO ENCONTRADO"
+                }
             }
         }
     }

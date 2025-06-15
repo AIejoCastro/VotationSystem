@@ -3,12 +3,14 @@
 //
 
 import Central.*;
+import CandidateNotification.*;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 public class CentralVotationI implements CentralVotation {
     private final String serverName;
@@ -236,8 +238,162 @@ public class CentralVotationI implements CentralVotation {
     }
 
     // ============================================================================
+    // MÉTODOS DE NOTIFICACIÓN DE CANDIDATOS
+    // ============================================================================
+
+    /**
+     * NUEVO: Método para registro de VotingMachines
+     */
+    @Override
+    public void registerVotingMachine(String machineId, VotingMachineCallbackPrx callback, com.zeroc.Ice.Current current)
+            throws CentralServerUnavailableException {
+        String timestamp = LocalDateTime.now().format(timeFormatter);
+        String clientEndpoint = current.con != null ? current.con.toString() : "unknown";
+
+        System.out.println("[" + timestamp + "] [" + serverName + "] 📱 Registrando VotingMachine: " + machineId);
+        System.out.println("[" + timestamp + "] [" + serverName + "] Conexión desde: " + clientEndpoint);
+
+        try {
+            CandidateNotificationManager.getInstance().registerVotingMachine(machineId, callback);
+            System.out.println("[" + timestamp + "] [" + serverName + "] ✅ VotingMachine registrada exitosamente");
+        } catch (Exception e) {
+            System.err.println("[" + timestamp + "] [" + serverName + "] ❌ Error registrando VotingMachine: " + e.getMessage());
+            throw new CentralServerUnavailableException("Error registrando máquina de votación: " + e.getMessage(),
+                    System.currentTimeMillis());
+        }
+    }
+
+    /**
+     * NUEVO: Método para desregistro de VotingMachines
+     */
+    @Override
+    public void unregisterVotingMachine(String machineId, com.zeroc.Ice.Current current)
+            throws CentralServerUnavailableException {
+        String timestamp = LocalDateTime.now().format(timeFormatter);
+        System.out.println("[" + timestamp + "] [" + serverName + "] 📱 Desregistrando VotingMachine: " + machineId);
+
+        try {
+            CandidateNotificationManager.getInstance().unregisterVotingMachine(machineId);
+            System.out.println("[" + timestamp + "] [" + serverName + "] ✅ VotingMachine desregistrada exitosamente");
+        } catch (Exception e) {
+            System.err.println("[" + timestamp + "] [" + serverName + "] ❌ Error desregistrando VotingMachine: " + e.getMessage());
+            throw new CentralServerUnavailableException("Error desregistrando máquina de votación: " + e.getMessage(),
+                    System.currentTimeMillis());
+        }
+    }
+
+    /**
+     * NUEVO: Método para obtener candidatos actuales (fallback si fallan notificaciones)
+     */
+    @Override
+    public CandidateListResponse getCurrentCandidates(com.zeroc.Ice.Current current) throws CentralServerUnavailableException {
+        String timestamp = LocalDateTime.now().format(timeFormatter);
+
+        try {
+            System.out.println("[" + timestamp + "] [" + serverName + "] 📋 Solicitud de candidatos actuales");
+
+            CandidateListResponse response = new CandidateListResponse();
+            response.updateTimestamp = System.currentTimeMillis();
+
+            List<CandidateData> candidateList = new ArrayList<>();
+
+            // Obtener candidatos activos
+            for (CandidateManager.Candidate candidate : candidateManager.getActiveCandidates()) {
+                CandidateManager.PoliticalParty party = candidateManager.getParty(candidate.partyId);
+
+                CandidateData candidateData = new CandidateData();
+                candidateData.candidateId = candidate.id;
+                candidateData.firstName = candidate.firstName;
+                candidateData.lastName = candidate.lastName;
+                candidateData.fullName = candidate.fullName;
+                candidateData.position = candidate.position;
+                candidateData.photo = candidate.photo;
+                candidateData.biography = candidate.biography;
+                candidateData.isActive = candidate.isActive;
+
+                if (party != null) {
+                    candidateData.partyId = party.id;
+                    candidateData.partyName = party.name;
+                    candidateData.partyColor = party.color;
+                    candidateData.partyIdeology = party.ideology;
+                    candidateData.partyLogo = party.logo;
+                }
+
+                candidateList.add(candidateData);
+            }
+
+            // Agregar voto en blanco
+            CandidateData blankVote = new CandidateData();
+            blankVote.candidateId = "blank";
+            blankVote.firstName = "VOTO";
+            blankVote.lastName = "EN BLANCO";
+            blankVote.fullName = "VOTO EN BLANCO";
+            blankVote.position = 999;
+            blankVote.photo = "📊";
+            blankVote.biography = "Opción para votantes que no desean elegir candidato específico";
+            blankVote.isActive = true;
+            blankVote.partyId = "blank";
+            blankVote.partyName = "Voto en Blanco";
+            blankVote.partyColor = "#CCCCCC";
+            blankVote.partyIdeology = "Ninguna";
+            blankVote.partyLogo = "📊";
+
+            candidateList.add(blankVote);
+
+            response.candidates = candidateList.toArray(new CandidateData[0]);
+            response.totalCandidates = candidateList.size();
+
+            System.out.println("[" + timestamp + "] [" + serverName + "] ✅ Enviando " +
+                    response.totalCandidates + " candidatos");
+
+            return response;
+
+        } catch (Exception e) {
+            System.err.println("[" + timestamp + "] [" + serverName + "] ❌ Error obteniendo candidatos: " + e.getMessage());
+            throw new CentralServerUnavailableException("Error obteniendo candidatos: " + e.getMessage(),
+                    System.currentTimeMillis());
+        }
+    }
+
+    // ============================================================================
     // MÉTODOS ADMINISTRATIVOS
     // ============================================================================
+
+    /**
+     * Cargar candidatos desde archivo con notificación automática
+     */
+    public void loadCandidatesFromFile(String filePath) {
+        String timestamp = LocalDateTime.now().format(timeFormatter);
+        System.out.println("[" + timestamp + "] [" + serverName + "] Cargando candidatos desde: " + filePath);
+
+        boolean success;
+        if (filePath.toLowerCase().endsWith(".xlsx") || filePath.toLowerCase().endsWith(".xls")) {
+            success = candidateManager.loadCandidatesFromExcel(filePath);
+        } else if (filePath.toLowerCase().endsWith(".csv")) {
+            success = candidateManager.loadCandidatesFromCSV(filePath);
+        } else {
+            System.err.println("[" + timestamp + "] [" + serverName + "] Formato de archivo no soportado. Use .xlsx, .xls o .csv");
+            return;
+        }
+
+        if (success) {
+            System.out.println("[" + timestamp + "] [" + serverName + "] ✅ Candidatos cargados exitosamente");
+            candidateManager.printCandidatesInfo();
+
+            // 🔥 NUEVA FUNCIONALIDAD: Notificar actualización a todas las VotingMachines
+            System.out.println("[" + timestamp + "] [" + serverName + "] 📡 Notificando actualización a máquinas de votación...");
+            try {
+                CandidateNotificationManager.getInstance().notifyCandidateUpdate(candidateManager);
+                System.out.println("[" + timestamp + "] [" + serverName + "] ✅ Notificación enviada exitosamente");
+            } catch (Exception e) {
+                System.err.println("[" + timestamp + "] [" + serverName + "] ⚠️  Error enviando notificación: " + e.getMessage());
+                System.err.println("[" + timestamp + "] [" + serverName + "] Las máquinas recibirán la actualización en su próxima consulta");
+            }
+
+        } else {
+            System.err.println("[" + timestamp + "] [" + serverName + "] ❌ Error cargando candidatos");
+        }
+    }
 
     public void printServerStatus() {
         String timestamp = LocalDateTime.now().format(timeFormatter);
@@ -624,27 +780,7 @@ public class CentralVotationI implements CentralVotation {
             System.err.println("❌ Error leyendo ruta de archivo: " + e.getMessage());
         }
     }
-    public void loadCandidatesFromFile(String filePath) {
-        String timestamp = LocalDateTime.now().format(timeFormatter);
-        System.out.println("[" + timestamp + "] [" + serverName + "] Cargando candidatos desde: " + filePath);
 
-        boolean success;
-        if (filePath.toLowerCase().endsWith(".xlsx") || filePath.toLowerCase().endsWith(".xls")) {
-            success = candidateManager.loadCandidatesFromExcel(filePath);
-        } else if (filePath.toLowerCase().endsWith(".csv")) {
-            success = candidateManager.loadCandidatesFromCSV(filePath);
-        } else {
-            System.err.println("[" + timestamp + "] [" + serverName + "] Formato de archivo no soportado. Use .xlsx, .xls o .csv");
-            return;
-        }
-
-        if (success) {
-            System.out.println("[" + timestamp + "] [" + serverName + "] ✅ Candidatos cargados exitosamente");
-            candidateManager.printCandidatesInfo();
-        } else {
-            System.err.println("[" + timestamp + "] [" + serverName + "] ❌ Error cargando candidatos");
-        }
-    }
     public void verifyDataIntegrity() {
         String timestamp = LocalDateTime.now().format(timeFormatter);
         System.out.println("\n[" + timestamp + "] [" + serverName + "] === VERIFICACIÓN DE INTEGRIDAD ===");
@@ -715,12 +851,6 @@ public class CentralVotationI implements CentralVotation {
 
         System.out.println("═".repeat(70));
     }
-    private double getParticipationRate() {
-        // Por ahora retornamos un valor basado en los votos actuales
-        // En un sistema real, esto se calcularía contra el padrón electoral
-        CentralVoteManager.VotingStats stats = voteManager.getStats();
-        return stats.totalVoters > 0 ? 100.0 : 0.0; // Asumimos 100% de los que votaron
-    }
 
     /**
      * Mostrar gráfico visual de distribución de votos
@@ -749,6 +879,46 @@ public class CentralVotationI implements CentralVotation {
         }
     }
 
+    /**
+     * Comando administrativo para gestión de notificaciones
+     */
+    public void printNotificationStatus() {
+        String timestamp = LocalDateTime.now().format(timeFormatter);
+        System.out.println("\n[" + timestamp + "] [" + serverName + "] === ESTADO DE NOTIFICACIONES ===");
+
+        CandidateNotificationManager.getInstance().printConnectionStatus();
+
+        System.out.println("\nCOMANDOS ADICIONALES:");
+        System.out.println("  healthcheck   - Verificar conectividad de máquinas");
+        System.out.println("  notify        - Forzar notificación de candidatos");
+        System.out.println("═══════════════════════════════════════════════════════════");
+    }
+
+    /**
+     * Forzar notificación manual de candidatos
+     */
+    public void forceNotifyCandidates() {
+        String timestamp = LocalDateTime.now().format(timeFormatter);
+        System.out.println("[" + timestamp + "] [" + serverName + "] 🔔 Forzando notificación de candidatos...");
+
+        try {
+            CandidateNotificationManager.getInstance().notifyCandidateUpdate(candidateManager);
+            System.out.println("[" + timestamp + "] [" + serverName + "] ✅ Notificación forzada completada");
+        } catch (Exception e) {
+            System.err.println("[" + timestamp + "] [" + serverName + "] ❌ Error en notificación forzada: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Health check de máquinas conectadas
+     */
+    public void healthCheckVotingMachines() {
+        String timestamp = LocalDateTime.now().format(timeFormatter);
+        System.out.println("[" + timestamp + "] [" + serverName + "] 🏥 Ejecutando health check de máquinas...");
+
+        CandidateNotificationManager.getInstance().healthCheck();
+    }
+
     public void printACKStatus() {
         String timestamp = LocalDateTime.now().format(timeFormatter);
         System.out.println("\n[" + timestamp + "] [" + serverName + "] === ESTADO DE ACK MANAGER ===");
@@ -765,6 +935,9 @@ public class CentralVotationI implements CentralVotation {
 
         System.out.println("\n🔍 ACK MANAGER DEBUG:");
         ackManager.printDebugInfo();
+
+        System.out.println("\n🔍 CANDIDATE NOTIFICATION DEBUG:");
+        CandidateNotificationManager.getInstance().printConnectionStatus();
 
         System.out.println("\n🔍 MÉTRICAS DE SISTEMA:");
         Runtime runtime = Runtime.getRuntime();

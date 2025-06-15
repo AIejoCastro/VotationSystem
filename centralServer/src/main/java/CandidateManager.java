@@ -134,6 +134,7 @@ public class CandidateManager {
         }
     }
 
+
     /**
      * Cargar candidatos desde archivo CSV (alternativa temporal)
      */
