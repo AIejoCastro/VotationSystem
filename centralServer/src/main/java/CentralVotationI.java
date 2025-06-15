@@ -4,6 +4,8 @@
 
 import Central.*;
 
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -15,11 +17,13 @@ public class CentralVotationI implements CentralVotation {
     // Componentes centralizados (movidos desde DepartmentalServer)
     private final CentralVoteManager voteManager;
     private final CentralACKManager ackManager;
+    private final CandidateManager candidateManager;
 
     public CentralVotationI(String serverName) {
         this.serverName = serverName;
         this.voteManager = CentralVoteManager.getInstance();
         this.ackManager = CentralACKManager.getInstance();
+        this.candidateManager = CandidateManager.getInstance();
 
         String timestamp = LocalDateTime.now().format(timeFormatter);
         System.out.println("[" + timestamp + "] [" + serverName + "] Servidor central inicializado");
@@ -44,6 +48,8 @@ public class CentralVotationI implements CentralVotation {
             System.out.println("   Votantes únicos cargados:    " + voteStats.totalVoters);
             System.out.println("   Votos totales cargados:      " + voteStats.totalProcessed);
             System.out.println("   ACKs cargados:               " + ackStats.totalACKs);
+            System.out.println("   Candidatos registrados:      " + candidateManager.getActiveCandidates().size());
+            System.out.println("   Partidos políticos:          " + candidateManager.getAllParties().size());
 
             if (voteStats.totalVoters > 0) {
                 // Mostrar algunos resultados si hay votos
@@ -318,8 +324,12 @@ public class CentralVotationI implements CentralVotation {
                     String candidateName = formatCandidateName(candidate);
                     String positionIcon = getPositionIcon(position);
 
-                    System.out.println(String.format("   %s %d° lugar: %-25s %,4d votos (%.2f%%)",
-                            positionIcon, position, candidateName, votes, percentage));
+                    // Obtener emoji del candidato para mejor visualización
+                    CandidateManager.Candidate candidateObj = candidateManager.getCandidate(candidate);
+                    String candidateIcon = candidateObj != null ? candidateObj.photo : "📊";
+
+                    System.out.println(String.format("   %s %s %d° lugar: %-25s %,4d votos (%.2f%%)",
+                            positionIcon, candidateIcon, position, candidateName, votes, percentage));
                     position++;
                 }
 
@@ -366,17 +376,10 @@ public class CentralVotationI implements CentralVotation {
     }
 
     /**
-     * Formatear nombre del candidato para display
+     * Formatear nombre del candidato para display usando CandidateManager
      */
     private String formatCandidateName(String candidateId) {
-        switch (candidateId) {
-            case "candidate001": return "Juan Pérez (Partido Azul)";
-            case "candidate002": return "María García (Partido Verde)";
-            case "candidate003": return "Carlos López (Partido Rojo)";
-            case "candidate004": return "Ana Martínez (Partido Amarillo)";
-            case "blank": return "VOTO EN BLANCO";
-            default: return candidateId;
-        }
+        return candidateManager.formatCandidateName(candidateId);
     }
 
     /**
@@ -392,8 +395,256 @@ public class CentralVotationI implements CentralVotation {
     }
 
     /**
-     * Verificar integridad entre votos y ACKs
+     * Mostrar información de candidatos y partidos
      */
+    public void printCandidatesInfo() {
+        candidateManager.printCandidatesInfo();
+    }
+
+    /**
+     * Abrir selector de archivos gráfico para cargar candidatos
+     */
+    public void openFileSelector() {
+        String timestamp = LocalDateTime.now().format(timeFormatter);
+        System.out.println("[" + timestamp + "] [" + serverName + "] Abriendo selector de archivos...");
+
+        try {
+            // Verificar si hay interfaz gráfica disponible
+            if (java.awt.GraphicsEnvironment.isHeadless()) {
+                System.out.println("⚠️  Interfaz gráfica no disponible. Usando modo texto:");
+                loadCandidatesFromConsole();
+                return;
+            }
+
+            // Crear file chooser en un thread separado para no bloquear
+            javax.swing.SwingUtilities.invokeLater(() -> {
+                try {
+                    openFileChooserDialog();
+                } catch (Exception e) {
+                    System.err.println("Error abriendo selector: " + e.getMessage());
+                    // Fallback a modo consola
+                    loadCandidatesFromConsole();
+                }
+            });
+
+        } catch (Exception e) {
+            System.err.println("Error iniciando selector de archivos: " + e.getMessage());
+            loadCandidatesFromConsole();
+        }
+    }
+
+    /**
+     * Abrir diálogo de selección de archivos
+     */
+    private void openFileChooserDialog() {
+        try {
+            // Configurar Look and Feel nativo
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            // Continuar con Look and Feel por defecto
+        }
+
+        JFileChooser fileChooser = new JFileChooser();
+
+        // Configurar el file chooser
+        fileChooser.setDialogTitle("Seleccionar Archivo de Candidatos - CentralServer");
+        fileChooser.setMultiSelectionEnabled(false);
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+        // Filtros de archivo
+        FileNameExtensionFilter csvFilter =
+                new FileNameExtensionFilter("Archivos CSV (*.csv)", "csv");
+        FileNameExtensionFilter excelFilter =
+                new FileNameExtensionFilter("Archivos Excel (*.xlsx, *.xls)", "xlsx", "xls");
+        FileNameExtensionFilter allSupportedFilter =
+                new FileNameExtensionFilter("Todos los archivos soportados", "csv", "xlsx", "xls");
+
+        fileChooser.addChoosableFileFilter(allSupportedFilter);
+        fileChooser.addChoosableFileFilter(csvFilter);
+        fileChooser.addChoosableFileFilter(excelFilter);
+        fileChooser.setFileFilter(allSupportedFilter);
+
+        // Establecer directorio inicial
+        File currentDir = new File(System.getProperty("user.dir"));
+        File configDir = new File(currentDir, "config");
+        if (configDir.exists()) {
+            fileChooser.setCurrentDirectory(configDir);
+        } else {
+            fileChooser.setCurrentDirectory(currentDir);
+        }
+
+        // Crear frame padre para centrar el diálogo
+        JFrame parentFrame = new JFrame();
+        parentFrame.setAlwaysOnTop(true);
+        parentFrame.setIconImage(createServerIcon());
+
+        // Mostrar diálogo
+        int result = fileChooser.showOpenDialog(parentFrame);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            String filePath = selectedFile.getAbsolutePath();
+
+            String timestamp = LocalDateTime.now().format(timeFormatter);
+            System.out.println("[" + timestamp + "] [" + serverName + "] Archivo seleccionado: " + filePath);
+
+            // Mostrar diálogo de confirmación
+            String fileName = selectedFile.getName();
+            long fileSize = selectedFile.length();
+            String fileSizeStr = String.format("%.2f KB", fileSize / 1024.0);
+
+            String message = String.format(
+                    "¿Desea cargar el siguiente archivo?\n\n" +
+                            "📁 Archivo: %s\n" +
+                            "📊 Tamaño: %s\n" +
+                            "📂 Ubicación: %s\n\n" +
+                            "Se cargarán los candidatos y partidos políticos.",
+                    fileName, fileSizeStr, selectedFile.getParent()
+            );
+
+            int confirm = JOptionPane.showConfirmDialog(
+                    parentFrame,
+                    message,
+                    "Confirmar Carga de Candidatos",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+            );
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                // Cargar archivo en thread separado para no bloquear UI
+                new Thread(() -> {
+                    loadCandidatesFromFile(filePath);
+                }).start();
+
+                // Mostrar mensaje de procesamiento
+                showProcessingMessage(parentFrame, fileName);
+            } else {
+                System.out.println("[" + timestamp + "] [" + serverName + "] Carga cancelada por el usuario");
+            }
+        } else {
+            String timestamp = LocalDateTime.now().format(timeFormatter);
+            System.out.println("[" + timestamp + "] [" + serverName + "] Selección de archivo cancelada");
+        }
+
+        parentFrame.dispose();
+    }
+
+    /**
+     * Crear icono para el servidor
+     */
+    private java.awt.Image createServerIcon() {
+        try {
+            // Crear un icono simple programáticamente
+            java.awt.image.BufferedImage icon = new java.awt.image.BufferedImage(32, 32, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+            java.awt.Graphics2D g2d = icon.createGraphics();
+
+            // Configurar antialiasing
+            g2d.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+
+            // Dibujar icono del servidor (cuadrado azul con "CS")
+            g2d.setColor(new java.awt.Color(0, 100, 200));
+            g2d.fillRoundRect(2, 2, 28, 28, 8, 8);
+
+            g2d.setColor(java.awt.Color.WHITE);
+            g2d.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 12));
+            java.awt.FontMetrics fm = g2d.getFontMetrics();
+            String text = "CS";
+            int textWidth = fm.stringWidth(text);
+            int textHeight = fm.getAscent();
+            g2d.drawString(text, (32 - textWidth) / 2, (32 + textHeight) / 2 - 2);
+
+            g2d.dispose();
+            return icon;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Mostrar mensaje de procesamiento
+     */
+    private void showProcessingMessage(javax.swing.JFrame parent, String fileName) {
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            javax.swing.JDialog processingDialog = new javax.swing.JDialog(parent, "Procesando...", true);
+            processingDialog.setDefaultCloseOperation(javax.swing.JDialog.DO_NOTHING_ON_CLOSE);
+            processingDialog.setSize(400, 150);
+            processingDialog.setLocationRelativeTo(parent);
+
+            javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.BorderLayout(10, 10));
+            panel.setBorder(javax.swing.BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+            javax.swing.JLabel messageLabel = new javax.swing.JLabel(
+                    "<html><center>🔄 Procesando archivo de candidatos...<br><br>" +
+                            "<b>" + fileName + "</b><br><br>" +
+                            "Por favor espere...</center></html>",
+                    javax.swing.SwingConstants.CENTER
+            );
+
+            javax.swing.JProgressBar progressBar = new javax.swing.JProgressBar();
+            progressBar.setIndeterminate(true);
+
+            panel.add(messageLabel, java.awt.BorderLayout.CENTER);
+            panel.add(progressBar, java.awt.BorderLayout.SOUTH);
+
+            processingDialog.add(panel);
+
+            // Cerrar automáticamente después de 3 segundos
+            javax.swing.Timer timer = new javax.swing.Timer(3000, e -> processingDialog.dispose());
+            timer.setRepeats(false);
+            timer.start();
+
+            processingDialog.setVisible(true);
+        });
+    }
+
+    /**
+     * Fallback a modo consola si la interfaz gráfica no está disponible
+     */
+    private void loadCandidatesFromConsole() {
+        System.out.println("📁 SELECTOR DE ARCHIVOS - MODO CONSOLA");
+        System.out.println("═".repeat(50));
+        System.out.println("Formatos soportados: .csv, .xlsx, .xls");
+        System.out.println("Ejemplos de rutas:");
+        System.out.println("  - config/candidates-example.csv");
+        System.out.println("  - /home/user/candidatos.xlsx");
+        System.out.println("  - C:\\Documents\\candidatos.csv");
+        System.out.println("═".repeat(50));
+
+        try {
+            java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(System.in));
+            System.out.print("Ingrese la ruta completa del archivo: ");
+            String filePath = reader.readLine();
+
+            if (filePath != null && !filePath.trim().isEmpty()) {
+                loadCandidatesFromFile(filePath.trim());
+            } else {
+                System.out.println("❌ Ruta de archivo no válida");
+            }
+        } catch (Exception e) {
+            System.err.println("❌ Error leyendo ruta de archivo: " + e.getMessage());
+        }
+    }
+    public void loadCandidatesFromFile(String filePath) {
+        String timestamp = LocalDateTime.now().format(timeFormatter);
+        System.out.println("[" + timestamp + "] [" + serverName + "] Cargando candidatos desde: " + filePath);
+
+        boolean success;
+        if (filePath.toLowerCase().endsWith(".xlsx") || filePath.toLowerCase().endsWith(".xls")) {
+            success = candidateManager.loadCandidatesFromExcel(filePath);
+        } else if (filePath.toLowerCase().endsWith(".csv")) {
+            success = candidateManager.loadCandidatesFromCSV(filePath);
+        } else {
+            System.err.println("[" + timestamp + "] [" + serverName + "] Formato de archivo no soportado. Use .xlsx, .xls o .csv");
+            return;
+        }
+
+        if (success) {
+            System.out.println("[" + timestamp + "] [" + serverName + "] ✅ Candidatos cargados exitosamente");
+            candidateManager.printCandidatesInfo();
+        } else {
+            System.err.println("[" + timestamp + "] [" + serverName + "] ❌ Error cargando candidatos");
+        }
+    }
     public void verifyDataIntegrity() {
         String timestamp = LocalDateTime.now().format(timeFormatter);
         System.out.println("\n[" + timestamp + "] [" + serverName + "] === VERIFICACIÓN DE INTEGRIDAD ===");

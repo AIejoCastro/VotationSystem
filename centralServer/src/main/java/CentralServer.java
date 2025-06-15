@@ -132,6 +132,8 @@ public class CentralServer {
         System.out.println("  status    - Estado del servidor y estadísticas");
         System.out.println("  votes     - Resumen de votos procesados");
         System.out.println("  results   - Resultados de la votación por candidato");
+        System.out.println("  candidates - Información de candidatos y partidos");
+        System.out.println("  loadexcel - 📁 Cargar candidatos (selector gráfico de archivos)");
         System.out.println("  verify    - Verificar integridad de datos");
         System.out.println("  acks      - Estado del ACK Manager");
         System.out.println("  debug     - Información detallada de debug");
@@ -159,6 +161,14 @@ public class CentralServer {
 
             case "results":
                 servant.printVotingResults();
+                break;
+
+            case "candidates":
+                servant.printCandidatesInfo();
+                break;
+
+            case "loadexcel":
+                servant.openFileSelector();
                 break;
 
             case "acks":

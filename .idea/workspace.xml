@@ -6,26 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="24301e38-80d3-47e0-8e0d-97d4c3d83b83" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/centralServer/src/main/java/CentralACKManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/centralServer/src/main/java/CentralACKManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/centralServer/src/main/java/CentralServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/centralServer/src/main/java/CentralServer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/centralServer/src/main/java/CentralVotationI.java" beforeDir="false" afterPath="$PROJECT_DIR$/centralServer/src/main/java/CentralVotationI.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/centralServer/src/main/java/CentralVoteManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/centralServer/src/main/java/CentralVoteManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/central-citizen-acks.csv" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/central-citizen-acks.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/central-votes.csv" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/central-votes.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-1/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-1/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-10/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-10/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-11/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-11/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-12/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-12/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-2/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-2/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-3/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-3/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-4/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-4/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-5/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-5/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-6/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-6/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-7/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-7/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-8/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-8/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-9/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-9/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/registry/data.mdb" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/registry/data.mdb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/registry/icedb.lock" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
