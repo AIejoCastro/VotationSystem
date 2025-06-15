@@ -12,6 +12,7 @@ public class CentralServer {
         System.out.println("████████████████████████████████████████████████████████████");
         System.out.println("█              SERVIDOR CENTRAL DE VOTACIÓN                 █");
         System.out.println("█          Acceso Exclusivo a Base de Datos                 █");
+        System.out.println("█        Con Sistema de Notificaciones Push                 █");
         System.out.println("████████████████████████████████████████████████████████████");
 
         int status = 0;
@@ -83,7 +84,9 @@ public class CentralServer {
             System.out.println("[" + timestamp + "] [CentralServer] 🗄️  Base de datos inicializada");
             System.out.println("[" + timestamp + "] [CentralServer] 🔧 ACK Manager optimizado activo");
             System.out.println("[" + timestamp + "] [CentralServer] 📊 Vote Manager con partitioning activo");
+            System.out.println("[" + timestamp + "] [CentralServer] 📡 Sistema de notificaciones push inicializado");
             System.out.println("[" + timestamp + "] [CentralServer] 🌐 Esperando conexiones de servidores departamentales...");
+            System.out.println("[" + timestamp + "] [CentralServer] 📱 Esperando conexiones de máquinas de votación...");
 
             // Mostrar estadísticas iniciales
             centralServant.printServerStatus();
@@ -127,16 +130,24 @@ public class CentralServer {
     }
 
     private static void showAdminCommands() {
-        System.out.println("\n" + "═".repeat(60));
+        System.out.println("\n" + "═".repeat(70));
         System.out.println("COMANDOS ADMINISTRATIVOS DISPONIBLES:");
-        System.out.println("  status    - Estado del servidor y estadísticas");
-        System.out.println("  votes     - Resumen de votos procesados");
-        System.out.println("  acks      - Estado del ACK Manager");
-        System.out.println("  debug     - Información detallada de debug");
-        System.out.println("  clear     - Limpiar estado (SOLO TESTING)");
-        System.out.println("  help      - Mostrar este menú");
-        System.out.println("  exit      - Cerrar servidor central");
-        System.out.println("═".repeat(60));
+        System.out.println("  status        - Estado del servidor y estadísticas");
+        System.out.println("  votes         - Resumen de votos procesados");
+        System.out.println("  results       - Resultados de la votación por candidato");
+        System.out.println("  candidates    - Información de candidatos y partidos");
+        System.out.println("  loadexcel     - 📁 Cargar candidatos (selector gráfico de archivos)");
+        System.out.println("  notifications - Estado de notificaciones a VotingMachines");
+        System.out.println("  machines      - Lista de máquinas conectadas");
+        System.out.println("  notify        - Forzar notificación de candidatos");
+        System.out.println("  healthcheck   - Verificar conectividad de máquinas");
+        System.out.println("  verify        - Verificar integridad de datos");
+        System.out.println("  acks          - Estado del ACK Manager");
+        System.out.println("  debug         - Información detallada de debug");
+        System.out.println("  clear         - Limpiar estado (SOLO TESTING)");
+        System.out.println("  help          - Mostrar este menú");
+        System.out.println("  exit          - Cerrar servidor central");
+        System.out.println("═".repeat(70));
     }
 
     private static void processAdminCommand(String command, CentralVotationI servant) {
@@ -147,8 +158,45 @@ public class CentralServer {
                 servant.printServerStatus();
                 break;
 
+            case "verify":
+                servant.verifyDataIntegrity();
+                break;
+
             case "votes":
                 servant.printVotesSummary();
+                break;
+
+            case "results":
+                servant.printVotingResults();
+                break;
+
+            case "candidates":
+                servant.printCandidatesInfo();
+                break;
+
+            case "loadexcel":
+                servant.openFileSelector();
+                break;
+
+            // NUEVOS COMANDOS DE NOTIFICACIÓN
+            case "notifications":
+            case "notify-status":
+                servant.printNotificationStatus();
+                break;
+
+            case "machines":
+            case "connected":
+                CandidateNotificationManager.getInstance().printConnectionStatus();
+                break;
+
+            case "notify":
+            case "force-notify":
+                servant.forceNotifyCandidates();
+                break;
+
+            case "healthcheck":
+            case "health":
+                servant.healthCheckVotingMachines();
                 break;
 
             case "acks":
