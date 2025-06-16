@@ -23,9 +23,9 @@ subprojects {
     // Todos los proyectos comparten las definiciones Slice
     //
     slice {
-        iceHome = "C:\\Program Files\\ZeroC\\Ice-3.7.10"
+        iceHome = "/opt/homebrew/opt/ice"
         java {
-            files = [file("../Votation.ice"), file("../VotingProxy.ice"), file("../CentralVotation.ice"), file("../VotingQuery.ice")]
+            files = [file("../Votation.ice"), file("../VotingProxy.ice"), file("../CentralVotation.ice"), file("../VotingQuery.ice"), file("../CandidateNotification.ice")]
         }
     }
 

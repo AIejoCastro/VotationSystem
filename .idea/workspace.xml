@@ -5,30 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="24301e38-80d3-47e0-8e0d-97d4c3d83b83" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CentralVotation.ice" beforeDir="false" afterPath="$PROJECT_DIR$/CentralVotation.ice" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/centralServer/src/main/java/CandidateManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/centralServer/src/main/java/CandidateManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/centralServer/src/main/java/CentralServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/centralServer/src/main/java/CentralServer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/centralServer/src/main/java/CentralVotationI.java" beforeDir="false" afterPath="$PROJECT_DIR$/centralServer/src/main/java/CentralVotationI.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/candidates.csv" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/candidates.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/central-citizen-acks.csv" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/central-citizen-acks.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/central-votes.csv" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/central-votes.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-1/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-1/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-10/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-10/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-11/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-11/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-12/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-12/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-2/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-2/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-3/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-3/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-4/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-4/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-5/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-5/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-6/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-6/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-7/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-7/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-8/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-8/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-9/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-9/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/registry/data.mdb" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/registry/data.mdb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/registry/icedb.lock" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/registry/icedb.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/votingMachine/src/main/java/VotingMachine.java" beforeDir="false" afterPath="$PROJECT_DIR$/votingMachine/src/main/java/VotingMachine.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -83,29 +62,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Gradle.VotationSystem.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.VotationSystem:user [:user:StressTest.main()].executor&quot;: &quot;Debug&quot;,
-    &quot;Gradle.VotationSystem:user [:user:User.main()].executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;centralServer&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/alejandrocastro/Documents/Universidad/Decimo Semestre/Ingenieria de Software IV/Proyecto/VotationSystem/config&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Gradle.VotationSystem.executor": "Run",
+    "Gradle.VotationSystem:user [:user:StressTest.main()].executor": "Debug",
+    "Gradle.VotationSystem:user [:user:User.main()].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "/Users/alejandrocastro/Documents/Universidad/Decimo Semestre/Ingenieria de Software IV/Proyecto/VotationSystem/config",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "preferences.lookFeel",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/config" />

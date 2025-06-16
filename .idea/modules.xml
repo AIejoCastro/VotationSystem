@@ -4,6 +4,12 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/centralServer/VotationSystem.centralServer.main.iml" filepath="$PROJECT_DIR$/.idea/modules/centralServer/VotationSystem.centralServer.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/departmentalReliableMessaging/VotationSystem.departmentalReliableMessaging.main.iml" filepath="$PROJECT_DIR$/.idea/modules/departmentalReliableMessaging/VotationSystem.departmentalReliableMessaging.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/loadTester/VotationSystem.loadTester.iml" filepath="$PROJECT_DIR$/.idea/modules/loadTester/VotationSystem.loadTester.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/loadTester/VotationSystem.loadTester.main.iml" filepath="$PROJECT_DIR$/.idea/modules/loadTester/VotationSystem.loadTester.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/loadTester/VotationSystem.loadTester.test.iml" filepath="$PROJECT_DIR$/.idea/modules/loadTester/VotationSystem.loadTester.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/queryMachine/VotationSystem.queryMachine.iml" filepath="$PROJECT_DIR$/.idea/modules/queryMachine/VotationSystem.queryMachine.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/queryMachine/VotationSystem.queryMachine.main.iml" filepath="$PROJECT_DIR$/.idea/modules/queryMachine/VotationSystem.queryMachine.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/queryMachine/VotationSystem.queryMachine.test.iml" filepath="$PROJECT_DIR$/.idea/modules/queryMachine/VotationSystem.queryMachine.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/reliableMessaging/VotationSystem.reliableMessaging.main.iml" filepath="$PROJECT_DIR$/.idea/modules/reliableMessaging/VotationSystem.reliableMessaging.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/user/VotationSystem.user.main.iml" filepath="$PROJECT_DIR$/.idea/modules/user/VotationSystem.user.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/user/VotationSystem.user.test.iml" filepath="$PROJECT_DIR$/.idea/modules/user/VotationSystem.user.test.iml" />
