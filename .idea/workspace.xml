@@ -6,42 +6,25 @@
   <component name="ChangeListManager">
     <list default="true" id="9ee6b384-72c4-4b60-a4b5-1564fc65236d" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CentralVotation.ice" beforeDir="false" afterPath="$PROJECT_DIR$/CentralVotation.ice" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/VoteStation.ice" beforeDir="false" afterPath="$PROJECT_DIR$/VoteStation.ice" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/VotingProxy.ice" beforeDir="false" afterPath="$PROJECT_DIR$/VotingProxy.ice" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/centralServer/src/main/java/CentralVotationI.java" beforeDir="false" afterPath="$PROJECT_DIR$/centralServer/src/main/java/CentralVotationI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/centralServer/src/main/java/Query/QueryServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/centralServer/src/main/java/Query/QueryServer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/centralServer/src/main/java/Query/QueryStationI.java" beforeDir="false" afterPath="$PROJECT_DIR$/centralServer/src/main/java/Query/QueryStationI.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/central-citizen-acks.csv" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/central-citizen-acks.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/central-votes.csv" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/central-votes.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-1/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-1/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-1/revision" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-10/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-10/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-10/revision" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-11/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-11/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-11/revision" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-12/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-12/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-12/revision" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-2/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-2/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-2/revision" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-3/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-3/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-3/revision" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-4/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-4/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-4/revision" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-5/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-5/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-5/revision" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-6/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-6/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-6/revision" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-7/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-7/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-7/revision" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-8/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-8/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-8/revision" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-9/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-9/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-9/revision" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/registry/data.mdb" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/registry/data.mdb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/departmentalReliableMessaging/src/main/java/DepartmentalVoteRetryWorker.java" beforeDir="false" afterPath="$PROJECT_DIR$/departmentalReliableMessaging/src/main/java/DepartmentalVoteRetryWorker.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/departmentalServer/src/main/java/VotationI.java" beforeDir="false" afterPath="$PROJECT_DIR$/departmentalServer/src/main/java/VotationI.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/votingMachine/src/main/java/VoteStationI.java" beforeDir="false" afterPath="$PROJECT_DIR$/votingMachine/src/main/java/VoteStationI.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/votingMachine/src/main/java/VotingMachine.java" beforeDir="false" afterPath="$PROJECT_DIR$/votingMachine/src/main/java/VotingMachine.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/db/registry/icedb.lock" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/queryMachine/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/queryMachine/src/main/java/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,12 +46,13 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Gradle.VotationSystem:queryMachine [:queryMachine:Main.main()].executor": "Run",
+    "git-widget-placeholder": "main",
+    "node.js.selected.package.tslint": "(autodetect)"
   }
-}</component>
+}]]></component>
   <component name="TaskManager">
     <servers />
   </component>
