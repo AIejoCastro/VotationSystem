@@ -1,0 +1,13 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+application {
+    mainClass = 'Query.QueryServer' // 👈 Cambia esto si tu clase main se llama distinto
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}

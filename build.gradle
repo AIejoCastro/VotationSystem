@@ -25,14 +25,7 @@ subprojects {
     slice {
         iceHome = "/opt/homebrew/opt/ice"
         java {
-            // ACTUALIZADO: Incluir nueva interfaz VoteStation
-            files = [
-                    file("../Votation.ice"),
-                    file("../VotingProxy.ice"),
-                    file("../CentralVotation.ice"),
-                    file("../CandidateNotification.ice"),
-                    file("../VoteStation.ice")  // NUEVA INTERFAZ
-            ]
+            files = [file("../Votation.ice"), file("../VotingProxy.ice"), file("../CentralVotation.ice"), file("../VotingQuery.ice"), file("../CandidateNotification.ice")]
         }
     }
 
@@ -55,19 +48,19 @@ subprojects {
             implementation project(':reliableMessaging')
         }
 
-        // CentralServer como dependencia para departmentalServer
+        // NUEVO: CentralServer como dependencia para departmentalServer
         if (project.name == 'departmentalServer') {
             implementation project(':centralServer')
             implementation project(':departmentalReliableMessaging')
         }
 
-        // testFramework necesita acceso a centralServer y departmentalReliableMessaging
+        // NUEVO: testFramework necesita acceso a centralServer y departmentalReliableMessaging
         if (project.name == 'testFramework') {
             implementation project(':centralServer')
             implementation project(':departmentalReliableMessaging')
         }
 
-        // departmentalReliableMessaging necesita acceso a centralServer para las interfaces
+        // NUEVO: departmentalReliableMessaging necesita acceso a centralServer para las interfaces
         if (project.name == 'departmentalReliableMessaging') {
             implementation project(':centralServer')
         }

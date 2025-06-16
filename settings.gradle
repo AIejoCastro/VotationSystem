@@ -15,3 +15,6 @@ include('votingMachine')
 include('testFramework')
 include('centralServer')
 include('departmentalReliableMessaging')
+include ('queryMachine')
+include 'loadTester'
+

@@ -42,9 +42,9 @@ public class VotationI implements Votation
             java.lang.reflect.Method initialize = serviceClass.getMethod("initialize", com.zeroc.Ice.Communicator.class);
             initialize.invoke(this.messagingService, communicator);
 
-            System.out.println("[" + timestamp + "] [" + departmentalServerName + "] ✅ DepartmentalReliableMessaging inicializado");
+            System.out.println("[" + timestamp + "] [" + departmentalServerName + "]  DepartmentalReliableMessaging inicializado");
         } catch (Exception e) {
-            System.err.println("[" + timestamp + "] [" + departmentalServerName + "] ❌ Error inicializando reliable messaging: " + e.getMessage());
+            System.err.println("[" + timestamp + "] [" + departmentalServerName + "] Error inicializando reliable messaging: " + e.getMessage());
             this.messagingService = null;
         }
 
@@ -54,9 +54,9 @@ public class VotationI implements Votation
         this.centralServerProxy = getCentralServerProxy();
 
         if (centralServerProxy != null) {
-            System.out.println("[" + timestamp + "] [" + departmentalServerName + "] ✅ Conectado al servidor central");
+            System.out.println("[" + timestamp + "] [" + departmentalServerName + "]  Conectado al servidor central");
         } else {
-            System.err.println("[" + timestamp + "] [" + departmentalServerName + "] ⚠️  No se pudo conectar al servidor central - Reliable messaging activo");
+            System.err.println("[" + timestamp + "] [" + departmentalServerName + "] No se pudo conectar al servidor central - Reliable messaging activo");
         }
     }
 
@@ -90,7 +90,7 @@ public class VotationI implements Votation
         String timestamp = LocalDateTime.now().format(timeFormatter);
 
         if (citizenId == null || citizenId.trim().isEmpty() || candidateId == null || candidateId.trim().isEmpty()) {
-            throw new RuntimeException("Parámetros inválidos");
+            throw new RuntimeException("Parametros invalidos");
         }
 
         String cleanCitizenId = citizenId.trim();
@@ -105,7 +105,7 @@ public class VotationI implements Votation
         }
 
         try {
-            // INTENTAR ENVÍO DIRECTO AL CENTRALSERVER
+            // INTENTAR ENVIO DIRECTO AL CENTRALSERVER
             if (centralServerProxy != null) {
                 long startTime = System.currentTimeMillis();
                 String ackId = centralServerProxy.processVote(cleanCitizenId, cleanCandidateId, departmentalServerName);
@@ -230,7 +230,7 @@ public class VotationI implements Votation
             }
 
         } catch (Exception e) {
-            // No loggear error aquí - es normal durante indisponibilidad
+            // No loggear error aqui - es normal durante indisponibilidad
             return null;
         }
     }
