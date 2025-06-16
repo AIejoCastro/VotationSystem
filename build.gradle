@@ -25,7 +25,12 @@ subprojects {
     slice {
         iceHome = "/opt/homebrew/opt/ice"
         java {
-            files = [file("../Votation.ice"), file("../VotingProxy.ice"), file("../CentralVotation.ice"), file("../VotingQuery.ice"), file("../CandidateNotification.ice")]
+            files = [file("../Votation.ice"),
+                     file("../VotingProxy.ice"),
+                     file("../CentralVotation.ice"),
+                     file("../VotingQuery.ice"),
+                     file("../CandidateNotification.ice"),
+                     file('../VoteStation.ice')]
         }
     }
 

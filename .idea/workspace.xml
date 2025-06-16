@@ -4,25 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="24301e38-80d3-47e0-8e0d-97d4c3d83b83" name="Changes" comment="">
+    <list default="true" id="9ee6b384-72c4-4b60-a4b5-1564fc65236d" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/centralServer/src/main/java/CentralServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/centralServer/src/main/java/CentralServer.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/centralServer/src/main/java/CentralVotationI.java" beforeDir="false" afterPath="$PROJECT_DIR$/centralServer/src/main/java/CentralVotationI.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-1/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-1/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-10/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-10/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-11/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-11/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-12/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-12/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-2/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-2/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-3/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-3/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-4/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-4/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-5/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-5/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-6/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-6/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-7/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-7/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-8/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-8/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-9/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-9/config/config" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/registry/data.mdb" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/registry/data.mdb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/registry/lock.mdb" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/registry/lock.mdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/db/registry/icedb.lock" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/votingMachine/src/main/java/VotingMachine.java" beforeDir="false" afterPath="$PROJECT_DIR$/votingMachine/src/main/java/VotingMachine.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -35,31 +21,6 @@
       <ProjectState />
     </projectState>
   </component>
-  <component name="ExternalProjectsManager">
-    <system id="GRADLE">
-      <state>
-        <task path="$PROJECT_DIR$">
-          <activation />
-        </task>
-        <projects_view>
-          <tree_state>
-            <expand>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="VotationSystem" type="f1a62948:ProjectNode" />
-              </path>
-              <path>
-                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
-                <item name="VotationSystem" type="f1a62948:ProjectNode" />
-                <item name="Tasks" type="e4a08cd1:TasksNode" />
-              </path>
-            </expand>
-            <select />
-          </tree_state>
-        </projects_view>
-      </state>
-    </system>
-  </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
@@ -70,101 +31,16 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 2
-}</component>
-  <component name="ProjectId" id="2xevFvVD0jG8tmYAO4rAxIP9wnS" />
-  <component name="ProjectViewState">
-    <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showLibraryContents" value="true" />
-  </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
-    "Gradle.VotationSystem.executor": "Run",
-    "Gradle.VotationSystem:queryMachine [:queryMachine:Main.main()].executor": "Run",
-    "Gradle.VotationSystem:queryMachine [:queryMachine:querymachine.Main.main()].executor": "Run",
-    "Gradle.VotationSystem:user [:user:StressTest.main()].executor": "Debug",
-    "Gradle.VotationSystem:user [:user:User.main()].executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "git-widget-placeholder": "main",
-    "last_opened_file_path": "/Users/alejandrocastro/Documents/Universidad/Decimo Semestre/Ingenieria de Software IV/Proyecto/VotationSystem/config",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "preferences.lookFeel",
-    "vue.rearranger.settings.migration": "true"
+    "node.js.selected.package.tslint": "(autodetect)"
   }
-}</component>
-  <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/config" />
-      <recent name="$PROJECT_DIR$/user/src/main/resources" />
-    </key>
-    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
-      <recent name="" />
-    </key>
-  </component>
-  <component name="SharedIndexes">
-    <attachedChunks>
-      <set>
-        <option value="bundled-jdk-9823dce3aa75-fbdcb00ec9e3-intellij.indexing.shared.core-IU-251.26094.121" />
-        <option value="bundled-js-predefined-d6986cc7102b-b26f3e71634d-JavaScript-IU-251.26094.121" />
-      </set>
-    </attachedChunks>
-  </component>
+}]]></component>
   <component name="TaskManager">
-    <task active="true" id="Default" summary="Default task">
-      <changelist id="24301e38-80d3-47e0-8e0d-97d4c3d83b83" name="Changes" comment="" />
-      <created>1748311253474</created>
-      <option name="number" value="Default" />
-      <option name="presentableId" value="Default" />
-      <updated>1748311253474</updated>
-      <workItem from="1748311254539" duration="2546000" />
-      <workItem from="1748350315738" duration="467000" />
-      <workItem from="1748356569816" duration="1751000" />
-      <workItem from="1748404318051" duration="263000" />
-      <workItem from="1748404608180" duration="25000" />
-      <workItem from="1748405108074" duration="1432000" />
-      <workItem from="1748464295876" duration="9814000" />
-      <workItem from="1748483671550" duration="4759000" />
-      <workItem from="1748557313602" duration="751000" />
-      <workItem from="1748558321638" duration="1973000" />
-      <workItem from="1748560393810" duration="544000" />
-      <workItem from="1748655359096" duration="13933000" />
-      <workItem from="1748710394147" duration="187000" />
-      <workItem from="1748793871230" duration="7045000" />
-      <workItem from="1748833464694" duration="4350000" />
-      <workItem from="1749695280039" duration="7733000" />
-      <workItem from="1749742893624" duration="2370000" />
-      <workItem from="1749914443792" duration="1691000" />
-      <workItem from="1750017187549" duration="3247000" />
-      <workItem from="1750030810899" duration="3665000" />
-    </task>
     <servers />
   </component>
-  <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="3" />
-  </component>
-  <component name="UnknownFeatures">
-    <option featureType="com.intellij.fileTypeFactory" implementationName="*.ice" />
-  </component>
-  <component name="Vcs.Log.Tabs.Properties">
-    <option name="TAB_STATES">
-      <map>
-        <entry key="MAIN">
-          <value>
-            <State />
-          </value>
-        </entry>
-      </map>
-    </option>
+  <component name="VcsManagerConfiguration">
+    <option name="GROUP_MULTIFILE_MERGE_BY_DIRECTORY" value="true" />
   </component>
 </project>
