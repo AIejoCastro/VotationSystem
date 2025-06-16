@@ -122,7 +122,6 @@ public class CandidateNotificationManager {
         notification.candidates = currentCandidates.toArray(new CandidateData[0]);
         notification.totalCandidates = currentCandidates.size();
 
-        // Envío síncrono (removemos el método async que causaba conflicto)
         callback.onCandidatesUpdated(notification);
     }
 

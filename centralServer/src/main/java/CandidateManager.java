@@ -101,7 +101,6 @@ public class CandidateManager {
                 return false;
             }
 
-            // Usar Apache POI para leer Excel
             return parseExcelFile(excelFile);
 
         } catch (Exception e) {
@@ -116,12 +115,9 @@ public class CandidateManager {
      */
     private boolean parseExcelFile(File excelFile) {
         try {
-            // Por ahora implementamos lectura básica
-            // TODO: Implementar con Apache POI cuando esté disponible
             System.out.println("[CandidateManager] ⚠️  Apache POI no disponible, usando formato CSV como alternativa");
             System.out.println("[CandidateManager] Para cargar desde Excel, convierta el archivo a CSV primero");
 
-            // Intentar cargar como CSV si tiene extensión .csv
             if (excelFile.getName().toLowerCase().endsWith(".csv")) {
                 return loadCandidatesFromCSV(excelFile.getAbsolutePath());
             }
@@ -154,11 +150,9 @@ public class CandidateManager {
 
                 if (line.trim().isEmpty()) continue;
 
-                // CORRECCIÓN: Detectar y saltar encabezados automáticamente
                 if (isFirstLine) {
                     isFirstLine = false;
 
-                    // Verificar si la primera línea contiene encabezados
                     String lowerLine = line.toLowerCase();
                     if (lowerLine.contains("candidateid") || lowerLine.contains("candidate_id") ||
                             lowerLine.contains("firstname") || lowerLine.contains("lastname") ||
@@ -166,16 +160,14 @@ public class CandidateManager {
 
                         System.out.println("[CandidateManager] Detectados encabezados en línea 1, saltando...");
                         System.out.println("[CandidateManager] Encabezados: " + line);
-                        continue; // Saltar la línea de encabezados
+                        continue;
                     } else {
                         System.out.println("[CandidateManager] No se detectaron encabezados, procesando línea 1 como datos");
-                        // Procesar esta línea como datos (no hacer continue)
                     }
                 }
 
                 String[] parts = line.split(",");
 
-                // MEJORA: Validación más robusta del formato
                 if (parts.length < 6) {
                     System.err.println("[CandidateManager] Línea " + lineNumber + " inválida (faltan columnas): " + line);
                     System.err.println("[CandidateManager] Se esperan al menos 6 columnas: candidateId,firstName,lastName,partyId,partyName,position");
@@ -183,14 +175,12 @@ public class CandidateManager {
                 }
 
                 try {
-                    // Limpiar espacios y comillas de todos los campos
                     String candidateId = cleanField(parts[0]);
                     String firstName = cleanField(parts[1]);
                     String lastName = cleanField(parts[2]);
                     String partyId = cleanField(parts[3]);
                     String partyName = cleanField(parts[4]);
 
-                    // CORRECCIÓN: Manejo seguro de conversión a entero
                     String positionStr = cleanField(parts[5]);
                     int position;
                     try {

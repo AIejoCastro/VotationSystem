@@ -8,7 +8,6 @@ public class QueryServer {
     public static void main(String[] args) {
         try (Communicator communicator = Util.initialize(args, "config.cfg")) {
 
-            // Agregar shutdown hook para limpiar recursos
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
                 QueryStationI.shutdown();
             }));

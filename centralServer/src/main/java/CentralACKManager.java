@@ -21,7 +21,6 @@ public class CentralACKManager {
     private final ReentrantReadWriteLock rwLock = new ReentrantReadWriteLock();
     private final AtomicLong ackCounter = new AtomicLong(System.currentTimeMillis());
 
-    // OPTIMIZACIÓN: Buffering de escrituras
     private final List<String> writeBuffer = Collections.synchronizedList(new ArrayList<>());
     private final int BUFFER_SIZE = 100;
     private volatile long lastFlush = System.currentTimeMillis();
@@ -36,13 +35,10 @@ public class CentralACKManager {
             parentDir.mkdirs();
         }
 
-        // NUEVA: Cargar ACKs usando lectura optimizada
         loadACKsOptimized();
 
-        // NUEVA: Sincronizar con votos existentes si es necesario
         synchronizeWithExistingVotes();
 
-        // NUEVA: Iniciar background thread para flush periódico
         startBackgroundFlusher();
 
         System.out.println("[CentralACKManager] Inicializado con archivo: " + ackStateFile.getPath());
@@ -59,7 +55,6 @@ public class CentralACKManager {
     public String getOrCreateACK(String citizenId, String serverInfo) {
         String timestamp = LocalDateTime.now().format(timeFormatter);
 
-        // PASO 1: Verificación rápida con read lock
         rwLock.readLock().lock();
         try {
             String existingACK = citizenACKs.get(citizenId);
@@ -71,21 +66,17 @@ public class CentralACKManager {
             rwLock.readLock().unlock();
         }
 
-        // PASO 2: Doble verificación con write lock
         rwLock.writeLock().lock();
         try {
-            // Verificar nuevamente por si otro thread lo creó
             String existingACK = citizenACKs.get(citizenId);
             if (existingACK != null) {
                 System.out.println("[" + timestamp + "] [CentralACKManager-RACE] [" + serverInfo + "] ACK encontrado: " + existingACK);
                 return existingACK;
             }
 
-            // PASO 3: Crear nuevo ACK con contador optimizado
             String newACK = generateOptimizedACK(serverInfo);
             citizenACKs.put(citizenId, newACK);
 
-            // OPTIMIZACIÓN: Escritura buffered en lugar de inmediata
             addToWriteBuffer(citizenId, newACK);
 
             System.out.println("[" + timestamp + "] [CentralACKManager-NEW] [" + serverInfo + "] ACK creado: " + newACK);
@@ -130,7 +121,6 @@ public class CentralACKManager {
 
         writeBuffer.add(entry);
 
-        // Flush si buffer está lleno o ha pasado tiempo suficiente
         if (writeBuffer.size() >= BUFFER_SIZE ||
                 (System.currentTimeMillis() - lastFlush) > FLUSH_INTERVAL) {
             flushWriteBuffer();
@@ -150,7 +140,6 @@ public class CentralACKManager {
                 writeBuffer.clear();
             }
 
-            // OPTIMIZACIÓN: Escritura batch usando NIO
             try (FileChannel channel = FileChannel.open(ackStateFile.toPath(),
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
 
@@ -221,14 +210,12 @@ public class CentralACKManager {
         }
 
         try {
-            // OPTIMIZACIÓN: Lectura usando NIO para mejor performance
             List<String> lines = Files.readAllLines(ackStateFile.toPath());
 
             int loadedCount = 0;
             for (String line : lines) {
                 if (line.trim().isEmpty()) continue;
 
-                // OPTIMIZACIÓN: Parsing rápido sin split completo
                 int firstComma = line.indexOf(',');
                 int secondComma = line.indexOf(',', firstComma + 1);
 
