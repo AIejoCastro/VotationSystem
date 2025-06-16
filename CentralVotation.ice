@@ -20,11 +20,18 @@ module Central
         long timestamp;
     };
 
+    exception CitizenNotRegisteredException {
+        string citizenId;
+        string message;
+    };
+
     interface CentralVotation
     {
         // Operaciones principales de votación
         string processVote(string citizenId, string candidateId, string departmentalServerId)
-            throws AlreadyVotedCentralException, CentralServerUnavailableException;
+            throws AlreadyVotedCentralException, CitizenNotRegisteredException, CentralServerUnavailableException;
+
+        bool validateCitizen(string citizenId) throws CentralServerUnavailableException;
 
         string getExistingACK(string citizenId) throws CentralServerUnavailableException;
 

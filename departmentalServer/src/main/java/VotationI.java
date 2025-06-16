@@ -105,7 +105,7 @@ public class VotationI implements Votation
         }
 
         try {
-            // INTENTAR ENVIO DIRECTO AL CENTRALSERVER
+            // INTENTAR ENVIO DIRECTO AL CENTRALSERVER CON VALIDACIÓN
             if (centralServerProxy != null) {
                 long startTime = System.currentTimeMillis();
                 String ackId = centralServerProxy.processVote(cleanCitizenId, cleanCandidateId, departmentalServerName);
@@ -130,7 +130,7 @@ public class VotationI implements Votation
             }
 
         } catch (AlreadyVotedCentralException centralEx) {
-            // Convertir excepción central a excepción departamental
+            // Convertir excepción central a excepción departmental
             System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Duplicado detectado en servidor central");
             System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Ciudadano " + centralEx.citizenId +
                     " ya votó por " + centralEx.existingCandidate + " (ACK: " + centralEx.ackId + ")");
@@ -149,6 +149,15 @@ public class VotationI implements Votation
             AlreadyVotedException ex = new AlreadyVotedException();
             ex.ackId = centralEx.ackId;
             throw ex;
+
+        } catch (CitizenNotRegisteredException citizenEx) {
+            // NUEVA EXCEPCIÓN: Ciudadano no registrado
+            System.out.println("[" + timestamp + "] [" + departmentalServerName + "] ❌ Ciudadano NO registrado: " + citizenEx.citizenId);
+            System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Mensaje: " + citizenEx.message);
+
+            // Para el DepartmentalServer, esto se trata como un error especial
+            // Se puede lanzar una excepción personalizada o manejar como error del sistema
+            throw new RuntimeException("CITIZEN_NOT_REGISTERED:" + citizenEx.message);
 
         } catch (CentralServerUnavailableException centralEx) {
             // ACTIVAR RELIABLE MESSAGING
@@ -169,6 +178,12 @@ public class VotationI implements Votation
 
         } catch (Exception e) {
             System.err.println("[" + timestamp + "] [" + departmentalServerName + "] Error inesperado: " + e.getMessage());
+
+            // Verificar si es error de ciudadano no registrado
+            if (e.getMessage() != null && e.getMessage().startsWith("CITIZEN_NOT_REGISTERED:")) {
+                System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Reintentando en modo offline para ciudadano no registrado");
+                return handleOfflineVote(cleanCitizenId, cleanCandidateId, e.getMessage());
+            }
 
             return handleOfflineVote(cleanCitizenId, cleanCandidateId, "Error inesperado: " + e.getMessage());
         }

@@ -13,9 +13,18 @@ module Proxy
         string reason;
     };
 
+    // NUEVA: Excepción para ciudadano no registrado
+    exception CitizenNotRegisteredException {
+        string citizenId;
+        string message;
+    };
+
     interface VotingProxy
     {
-        string submitVote(string citizenId, string candidateId) throws VotingSystemUnavailableException, InvalidVoteException;
+        // ACTUALIZADO: Con nueva excepción
+        string submitVote(string citizenId, string candidateId)
+            throws VotingSystemUnavailableException, InvalidVoteException, CitizenNotRegisteredException;
+
         string getSystemStatus();
         int getPendingVotesCount();
     }

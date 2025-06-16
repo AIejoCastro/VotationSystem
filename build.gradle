@@ -47,6 +47,11 @@ subprojects {
     dependencies {
         implementation 'com.zeroc:ice:3.7.10'
         implementation 'com.zeroc:icegrid:3.7.10'
+        implementation 'com.zaxxer:HikariCP:5.0.1'  // NUEVA dependencia
+
+        if (project.name == 'centralServer') {
+            implementation 'org.postgresql:postgresql:42.6.0'
+        }
 
         // Dependencias específicas por proyecto
         if (project.name == 'votingSite') {

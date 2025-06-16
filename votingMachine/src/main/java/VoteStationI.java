@@ -1,8 +1,3 @@
-//
-// VoteStationI - Implementación del servicio ICE VoteStation
-// Para automatización de pruebas y integración
-//
-
 import VotingStation.*;
 import Proxy.*;
 import Central.*;
@@ -19,12 +14,10 @@ public class VoteStationI implements VotingStation.VoteStation {
     private final CentralVotationPrx centralProxy;
     private final String stationId;
 
-    // Cache local de candidatos
+    // Cache local de candidatos y mapeo existentes...
     private volatile List<CandidateData> currentCandidates = new ArrayList<CandidateData>();
     private volatile long lastUpdateTimestamp = 0;
     private final Object candidatesLock = new Object();
-
-    // Mapeo de candidatos: posición -> candidateId
     private final Map<Integer, String> candidateMapping = new HashMap<Integer, String>();
 
     public VoteStationI(VotingProxyPrx votingProxy, CentralVotationPrx centralProxy, String stationId) {
@@ -87,13 +80,21 @@ public class VoteStationI implements VotingStation.VoteStation {
             System.out.println("[" + timestamp + "] [VoteStation-" + stationId + "] ❌ Voto inválido: " + e.reason);
 
             // Verificar si es un duplicado
-            if (e.reason != null && e.reason.toLowerCase().contains("already voted") ||
+            if (e.reason != null && (e.reason.toLowerCase().contains("already voted") ||
                     e.reason.toLowerCase().contains("ya votó") ||
-                    e.reason.toLowerCase().contains("duplicado")) {
+                    e.reason.toLowerCase().contains("duplicado"))) {
                 return 2; // Ciudadano ya votó
             }
 
             return 5; // Error: voto inválido
+
+        } catch (Proxy.CitizenNotRegisteredException e) {
+            // SOLUCIÓN: Usar nombre completamente calificado Proxy.CitizenNotRegisteredException
+            timestamp = LocalDateTime.now().format(timeFormatter);
+            System.out.println("[" + timestamp + "] [VoteStation-" + stationId + "] ❌ Ciudadano no registrado: " + e.citizenId);
+            System.out.println("[" + timestamp + "] [VoteStation-" + stationId + "] Mensaje: " + e.message);
+
+            return 3; // CÓDIGO: Ciudadano no registrado en base de datos
 
         } catch (Exception e) {
             timestamp = LocalDateTime.now().format(timeFormatter);
@@ -101,15 +102,24 @@ public class VoteStationI implements VotingStation.VoteStation {
 
             // Verificar si es error de duplicado por algún mensaje específico
             String errorMsg = e.getMessage();
-            if (errorMsg != null && (errorMsg.contains("already voted") ||
-                    errorMsg.contains("ya votó") ||
-                    errorMsg.contains("duplicado"))) {
-                return 2; // Ciudadano ya votó
+            if (errorMsg != null) {
+                if (errorMsg.contains("already voted") || errorMsg.contains("ya votó") || errorMsg.contains("duplicado")) {
+                    return 2; // Ciudadano ya votó
+                }
+
+                // Verificar si es error de ciudadano no registrado
+                if (errorMsg.contains("CITIZEN_NOT_REGISTERED") ||
+                        errorMsg.contains("no está registrado") ||
+                        errorMsg.contains("not registered")) {
+                    return 3; // Ciudadano no registrado
+                }
             }
 
             return 9; // Error interno del sistema
         }
     }
+
+    // Resto de métodos existentes sin cambios...
 
     @Override
     public String getStationStatus(com.zeroc.Ice.Current current) {
@@ -171,9 +181,8 @@ public class VoteStationI implements VotingStation.VoteStation {
             if (centralProxy != null) {
                 return centralProxy.hasVoted(document.trim());
             } else {
-                // Fallback: intentar un voto dummy para verificar duplicado
-                // NOTA: Este método no es ideal, pero es un fallback
-                return false; // No podemos verificar sin acceso al central
+                // Fallback: no podemos verificar sin acceso al central
+                return false;
             }
         } catch (Exception e) {
             System.err.println("[VoteStation-" + stationId + "] Error verificando voto: " + e.getMessage());

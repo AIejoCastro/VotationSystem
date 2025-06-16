@@ -20,12 +20,14 @@ public class CentralVotationI implements CentralVotation {
     private final CentralVoteManager voteManager;
     private final CentralACKManager ackManager;
     private final CandidateManager candidateManager;
+    private final CitizenDAO citizenDAO;
 
     public CentralVotationI(String serverName) {
         this.serverName = serverName;
         this.voteManager = CentralVoteManager.getInstance();
         this.ackManager = CentralACKManager.getInstance();
         this.candidateManager = CandidateManager.getInstance();
+        this.citizenDAO = new CitizenDAO();
 
         String timestamp = LocalDateTime.now().format(timeFormatter);
         System.out.println("[" + timestamp + "] [" + serverName + "] Servidor central inicializado");
@@ -80,13 +82,12 @@ public class CentralVotationI implements CentralVotation {
 
     @Override
     public String processVote(String citizenId, String candidateId, String departmentalServerId, com.zeroc.Ice.Current current)
-            throws AlreadyVotedCentralException, CentralServerUnavailableException {
+            throws AlreadyVotedCentralException, CitizenNotRegisteredException, CentralServerUnavailableException {
 
         String timestamp = LocalDateTime.now().format(timeFormatter);
         String clientInfo = current.con != null ? current.con.toString() : "unknown";
 
         System.out.println("[" + timestamp + "] [" + serverName + "] Voto recibido desde " + departmentalServerId);
-        System.out.println("[" + timestamp + "] [" + serverName + "] Cliente: " + clientInfo);
         System.out.println("[" + timestamp + "] [" + serverName + "] Procesando: " + citizenId + " -> " + candidateId);
 
         if (citizenId == null || citizenId.trim().isEmpty() || candidateId == null || candidateId.trim().isEmpty()) {
@@ -97,11 +98,25 @@ public class CentralVotationI implements CentralVotation {
         String cleanCandidateId = candidateId.trim();
 
         try {
-            // PASO 1: Verificación rápida con ACKManager optimizado
+            // PASO 1: NUEVA VALIDACIÓN - Verificar que el ciudadano esté registrado
+            boolean citizenExists = citizenDAO.validateCitizen(cleanCitizenId);
+
+            if (!citizenExists) {
+                timestamp = LocalDateTime.now().format(timeFormatter);
+                System.out.println("[" + timestamp + "] [" + serverName + "] ❌ Ciudadano NO registrado: " + cleanCitizenId);
+
+                CitizenNotRegisteredException ex = new CitizenNotRegisteredException();
+                ex.citizenId = cleanCitizenId;
+                ex.message = "Ciudadano no está registrado en la base de datos electoral";
+                throw ex;
+            }
+
+            System.out.println("[" + timestamp + "] [" + serverName + "] ✅ Ciudadano validado: " + cleanCitizenId);
+
+            // PASO 2: Verificación de voto duplicado con ACKManager
             String existingACK = ackManager.getACK(cleanCitizenId);
 
             if (existingACK != null) {
-                // Ciudadano ya tiene ACK - retornar excepción con datos
                 String existingVote = voteManager.getExistingVote(cleanCitizenId);
 
                 System.out.println("[" + timestamp + "] [" + serverName + "] Duplicado detectado: " +
@@ -114,19 +129,14 @@ public class CentralVotationI implements CentralVotation {
                 throw ex;
             }
 
-            // PASO 2: Procesar voto con VoteManager optimizado
+            // PASO 3: Procesar voto válido con VoteManager
             CentralVoteManager.VoteResult result = voteManager.receiveVote(cleanCitizenId, cleanCandidateId);
 
             if (result.success) {
-                // VOTO VÁLIDO - generar ACK único centralmente
+                // VOTO VÁLIDO - generar ACK único
                 String ackId = ackManager.getOrCreateACK(cleanCitizenId, serverName + "-" + departmentalServerId);
 
-                // Log solo cada 100 votos para reducir overhead
-                if (voteManager.getStats().totalProcessed % 100 == 0) {
-                    System.out.println("[" + timestamp + "] [" + serverName + "] Voto #" +
-                            voteManager.getStats().totalProcessed + " procesado - ACK: " + ackId);
-                }
-
+                System.out.println("[" + timestamp + "] [" + serverName + "] ✅ Voto procesado exitosamente - ACK: " + ackId);
                 return ackId;
 
             } else {
@@ -141,8 +151,8 @@ public class CentralVotationI implements CentralVotation {
                 throw ex;
             }
 
-        } catch (AlreadyVotedCentralException e) {
-            throw e; // Re-lanzar excepción específica
+        } catch (AlreadyVotedCentralException | CitizenNotRegisteredException e) {
+            throw e; // Re-lanzar excepciones específicas
         } catch (Exception e) {
             System.err.println("[" + timestamp + "] [" + serverName + "] Error procesando voto: " + e.getMessage());
             throw new CentralServerUnavailableException("Error interno del servidor central: " + e.getMessage(),
@@ -229,6 +239,7 @@ public class CentralVotationI implements CentralVotation {
         try {
             voteManager.shutdown();
             ackManager.shutdown();
+            citizenDAO.close();
             System.out.println("[" + timestamp + "] [" + serverName + "] Componentes terminados correctamente");
         } catch (Exception e) {
             System.err.println("[" + timestamp + "] [" + serverName + "] Error en shutdown: " + e.getMessage());
@@ -962,6 +973,17 @@ public class CentralVotationI implements CentralVotation {
             System.out.println("[" + timestamp + "] [" + serverName + "] ✅ Estado limpiado completamente");
         } catch (Exception e) {
             System.err.println("[" + timestamp + "] [" + serverName + "] ❌ Error limpiando estado: " + e.getMessage());
+        }
+    }
+
+    // NUEVO: Método específico para validar ciudadano
+    @Override
+    public boolean validateCitizen(String citizenId, com.zeroc.Ice.Current current) throws CentralServerUnavailableException {
+        try {
+            return citizenDAO.validateCitizen(citizenId != null ? citizenId.trim() : null);
+        } catch (Exception e) {
+            throw new CentralServerUnavailableException("Error validando ciudadano: " + e.getMessage(),
+                    System.currentTimeMillis());
         }
     }
 }

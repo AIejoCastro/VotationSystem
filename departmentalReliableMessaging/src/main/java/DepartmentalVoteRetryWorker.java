@@ -6,7 +6,7 @@ import java.util.List;
 
 /**
  * DepartmentalVoteRetryWorker - Worker para reintentos de comunicación Departamental → Central
- * Procesa votos offline cuando el CentralServer no está disponible
+ * ACTUALIZADO: Maneja CitizenNotRegisteredException
  */
 public class DepartmentalVoteRetryWorker extends Thread {
     private final Communicator communicator;
@@ -36,6 +36,7 @@ public class DepartmentalVoteRetryWorker extends Thread {
             System.out.println("  - Intervalo cuando hay votos pendientes: " + retryInterval + "ms");
             System.out.println("  - Estrategia: INTENTOS ILIMITADOS hacia CentralServer");
             System.out.println("  - Solo activo cuando CentralServer no disponible");
+            System.out.println("  - Maneja validación de ciudadanos en PostgreSQL");
         }
     }
 
@@ -130,6 +131,7 @@ public class DepartmentalVoteRetryWorker extends Thread {
         int successCount = 0;
         int errorCount = 0;
         int duplicateCount = 0;
+        int notRegisteredCount = 0; // NUEVO: Contador para ciudadanos no registrados
 
         for (String[] vote : votes) {
             try {
@@ -157,6 +159,24 @@ public class DepartmentalVoteRetryWorker extends Thread {
                             vote[0] + " | ACK: " + e.ackId);
                 }
 
+            } catch (CitizenNotRegisteredException e) {
+                // NUEVO: Manejar ciudadano no registrado
+                long latency = System.currentTimeMillis() - System.currentTimeMillis();
+                String voteKey = vote[0] + "|" + vote[1] + "|" + vote[2];
+
+                // Generar ACK especial para ciudadano no registrado
+                String specialACK = "NOT-REGISTERED-" + e.citizenId + "-" + System.currentTimeMillis();
+                ackManager.failVote(voteKey, "CITIZEN_NOT_REGISTERED: " + e.message);
+
+                notRegisteredCount++;
+                System.out.println("[DepartmentalReliableMessaging] ❌ Ciudadano NO registrado en CentralServer: " +
+                        vote[0] + " | Mensaje: " + e.message);
+
+                if (verboseLogging) {
+                    System.out.println("[DepartmentalReliableMessaging] Voto rechazado por validación: " + e.citizenId +
+                            " no está en la base de datos PostgreSQL");
+                }
+
             } catch (CentralServerUnavailableException e) {
                 System.out.println("[DepartmentalReliableMessaging] CentralServer temporalmente no disponible: " + e.reason);
                 System.out.println("[DepartmentalReliableMessaging] Reintentando todos los votos en proxima iteracion");
@@ -174,23 +194,42 @@ public class DepartmentalVoteRetryWorker extends Thread {
 
                 // Si hay error de conexión, parar procesamiento y reintentar todo
                 break;
+
+            } catch (Exception e) {
+                // NUEVO: Capturar cualquier otra excepción no prevista
+                System.err.println("[DepartmentalReliableMessaging] Excepción inesperada procesando voto: " + e.getClass().getSimpleName());
+                System.err.println("[DepartmentalReliableMessaging] Mensaje: " + e.getMessage());
+
+                String voteKey = vote[0] + "|" + vote[1] + "|" + vote[2];
+                ackManager.failVote(voteKey, "UNEXPECTED_ERROR: " + e.getMessage());
+
+                errorCount++;
+
+                // No romper el bucle para otras excepciones, continuar con el siguiente voto
+                if (verboseLogging) {
+                    System.out.println("[DepartmentalReliableMessaging] Continuando con siguiente voto después de error inesperado");
+                }
             }
         }
 
-        // Logging de resultados
+        // ACTUALIZADO: Logging de resultados con nuevos contadores
         if (errorCount == 0) {
-            // ¡TODOS los votos fueron procesados exitosamente!
+            // TODOS los votos fueron procesados (exitosos, duplicados o rechazados por validación)
             queue.clear();
-            System.out.println("[DepartmentalReliableMessaging] ¡EXITO TOTAL! Todos los votos entregados a CentralServer");
-            System.out.println("[DepartmentalReliableMessaging] Entregados: " + successCount +
-                    " nuevos, " + duplicateCount + " duplicados confirmados");
-            // No logging de "volviendo a standby" aquí - lo maneja run()
+            System.out.println("[DepartmentalReliableMessaging] ¡PROCESAMIENTO COMPLETO! Todos los votos procesados por CentralServer");
+            System.out.println("[DepartmentalReliableMessaging] Resultados: " + successCount + " exitosos, " +
+                    duplicateCount + " duplicados, " + notRegisteredCount + " no registrados");
+
+            if (notRegisteredCount > 0) {
+                System.out.println("[DepartmentalReliableMessaging] ⚠️  " + notRegisteredCount +
+                        " votos rechazados por validación de ciudadanos en PostgreSQL");
+            }
 
         } else {
-            System.out.println("[DepartmentalReliableMessaging] Procesamiento parcial: " + successCount +
-                    " exitosos, " + duplicateCount + " duplicados");
+            System.out.println("[DepartmentalReliableMessaging] Procesamiento parcial: " + successCount + " exitosos, " +
+                    duplicateCount + " duplicados, " + notRegisteredCount + " no registrados");
             System.out.println("[DepartmentalReliableMessaging] Reintentos pendientes: " +
-                    (votes.size() - successCount - duplicateCount) + " votos");
+                    (votes.size() - successCount - duplicateCount - notRegisteredCount) + " votos");
             System.out.println("[DepartmentalReliableMessaging] GARANTIA: Continuaremos hasta entregar TODOS los votos a CentralServer");
         }
     }

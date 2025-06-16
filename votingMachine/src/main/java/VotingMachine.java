@@ -328,6 +328,15 @@ public class VotingMachine {
                 System.out.println("📊 Cada ciudadano puede votar una sola vez");
                 break;
 
+            case 3:
+                // NUEVO CÓDIGO: Ciudadano no registrado
+                System.out.println("\n❌ CIUDADANO NO REGISTRADO");
+                System.out.println("═".repeat(50));
+                System.out.println("[" + timestamp + "] El documento " + document + " no está registrado");
+                System.out.println("📋 Solo ciudadanos registrados pueden participar en la votación");
+                System.out.println("🏢 Contacte a la oficina electoral para verificar su registro");
+                break;
+
             default:
                 System.out.println("\n❌ ERROR PROCESANDO VOTO");
                 System.out.println("═".repeat(50));
