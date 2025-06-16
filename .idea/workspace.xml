@@ -5,9 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="24301e38-80d3-47e0-8e0d-97d4c3d83b83" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -65,6 +63,8 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Gradle.VotationSystem.executor": "Run",
+    "Gradle.VotationSystem:queryMachine [:queryMachine:Main.main()].executor": "Run",
+    "Gradle.VotationSystem:queryMachine [:queryMachine:querymachine.Main.main()].executor": "Run",
     "Gradle.VotationSystem:user [:user:StressTest.main()].executor": "Debug",
     "Gradle.VotationSystem:user [:user:User.main()].executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
