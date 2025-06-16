@@ -25,12 +25,13 @@ subprojects {
     slice {
         iceHome = "/opt/homebrew/opt/ice"
         java {
-            // ACTUALIZADO: Incluir nueva interfaz de notificaciones
+            // ACTUALIZADO: Incluir nueva interfaz VoteStation
             files = [
                     file("../Votation.ice"),
                     file("../VotingProxy.ice"),
                     file("../CentralVotation.ice"),
-                    file("../CandidateNotification.ice")  // NUEVA
+                    file("../CandidateNotification.ice"),
+                    file("../VoteStation.ice")  // NUEVA INTERFAZ
             ]
         }
     }
@@ -71,9 +72,10 @@ subprojects {
             implementation project(':centralServer')
         }
 
-        // NUEVO: votingMachine necesita acceso a centralServer para notificaciones
+        // ACTUALIZADO: votingMachine ahora necesita acceso a centralServer Y VoteStation
         if (project.name == 'votingMachine') {
             implementation project(':centralServer')
+            // VoteStation se genera automáticamente desde VoteStation.ice
         }
     }
 
@@ -104,7 +106,7 @@ subprojects {
                 )
             } else if (project.name == 'votingMachine') {
                 attributes(
-                        // ACTUALIZADO: Nueva clase principal mejorada
+                        // ACTUALIZADO: Clase principal que incluye CLI + ICE
                         "Main-Class": "VotingMachine",
                         "Class-Path": configurations.runtimeClasspath.resolve().collect { it.toURI() }.join(' ')
                 )
@@ -128,7 +130,7 @@ subprojects {
     }
 
     //
-    // NUEVA: Task para generar código Ice automáticamente
+    // Task para generar código Ice automáticamente
     //
     task generateIceCode {
         dependsOn 'compileSlice'
@@ -138,7 +140,7 @@ subprojects {
     }
 
     //
-    // NUEVA: Task para verificar interfaces Ice
+    // Task para verificar interfaces Ice
     //
     task verifyIceInterfaces {
         doLast {
@@ -155,6 +157,20 @@ subprojects {
     }
 
     //
+    // NUEVA: Task para verificar interfaz VoteStation específicamente
+    //
+    task verifyVoteStationInterface {
+        doLast {
+            def voteStationFile = file("../VoteStation.ice")
+            if (voteStationFile.exists()) {
+                println "✅ VoteStation.ice encontrado - Interfaz ICE para automatización lista"
+            } else {
+                println "❌ VoteStation.ice NO encontrado - Crear archivo de interfaz ICE"
+            }
+        }
+    }
+
+    //
     // Task personalizada para mostrar dependencias de cada proyecto
     //
     task showDependencies {
@@ -165,6 +181,27 @@ subprojects {
                 println "  - ${dep.name}"
             }
             println ""
+        }
+    }
+
+    //
+    // NUEVA: Task para testing de VoteStation
+    //
+    task testVoteStation {
+        dependsOn 'build'
+        doLast {
+            if (project.name == 'votingMachine') {
+                println "🧪 Para probar VoteStation ICE interface:"
+                println "   1. Ejecutar: java -jar votingMachine/build/libs/votingMachine.jar"
+                println "   2. El servicio ICE estará disponible automáticamente"
+                println "   3. Usar identidad: VoteStation-[ID] para conexiones ICE"
+                println "   4. Métodos disponibles:"
+                println "      - int vote(string document, int candidateId)"
+                println "      - string getStationStatus()"
+                println "      - string getCandidateList()"
+                println "      - bool hasVoted(string document)"
+                println "      - void shutdown()"
+            }
         }
     }
 }
