@@ -1,4 +1,7 @@
 import Proxy.*;
+import java.sql.*;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -6,7 +9,7 @@ import java.util.*;
 
 /**
  * Test de carga independiente para 1,777 votos/segundo
- * Ejecutar directamente: java HighLoadTest
+ * MODIFICADO: Usa documentos reales de la base de datos PostgreSQL
  */
 public class HighLoadTest {
 
@@ -29,9 +32,15 @@ public class HighLoadTest {
     private static volatile boolean testRunning = false;
     private static volatile long testStartTime = 0;
 
+    // BASE DE DATOS - Pool de documentos reales
+    private static HikariDataSource dataSource;
+    private static List<String> realDocuments = Collections.synchronizedList(new ArrayList<>());
+    private static final AtomicInteger documentIndex = new AtomicInteger(0);
+
     public static void main(String[] args) {
         System.out.println("████████████████████████████████████████████████████████████");
         System.out.println("█           TEST DE CARGA ALTA - SISTEMA VOTACIÓN            █");
+        System.out.println("█               SOLO VOTOS ÚNICOS - SIN DUPLICADOS           █");
         System.out.println("████████████████████████████████████████████████████████████");
         System.out.println("🎯 Objetivo: " + TARGET_VOTES_PER_SECOND + " votos/segundo");
         System.out.println("⏱️  Duración: " + TEST_DURATION_SECONDS + " segundos (" + (TEST_DURATION_SECONDS/60) + " minutos)");
@@ -39,18 +48,24 @@ public class HighLoadTest {
         System.out.println("🖥️  Máquinas concurrentes: " + CONCURRENT_MACHINES);
         System.out.println("████████████████████████████████████████████████████████████");
 
-        // Verificar argumentos opcionales
-        if (args.length > 0) {
-            try {
-                int customRate = Integer.parseInt(args[0]);
-                System.out.println("⚠️  Usando velocidad personalizada: " + customRate + " votos/segundo");
-                // Nota: Para simplicidad, mantenemos la configuración original
-            } catch (NumberFormatException e) {
-                System.out.println("⚠️  Argumento inválido, usando configuración por defecto");
-            }
+        // Inicializar conexión a base de datos
+        if (!initializeDatabase()) {
+            System.err.println("❌ ERROR CRÍTICO: No se pudo conectar a la base de datos");
+            System.exit(1);
+        }
+
+        // Cargar documentos reales
+        if (!loadRealDocuments()) {
+            System.err.println("❌ ERROR CRÍTICO: No se pudieron cargar documentos de la BD");
+            System.exit(1);
         }
 
         boolean testPassed = executeLoadTest();
+
+        // Cerrar conexión a BD
+        if (dataSource != null && !dataSource.isClosed()) {
+            dataSource.close();
+        }
 
         System.out.println("\n████████████████████████████████████████████████████████████");
         if (testPassed) {
@@ -63,6 +78,109 @@ public class HighLoadTest {
         System.out.println("████████████████████████████████████████████████████████████");
 
         System.exit(testPassed ? 0 : 1);
+    }
+
+    /**
+     * Inicializar pool de conexiones a PostgreSQL
+     */
+    private static boolean initializeDatabase() {
+        try {
+            System.out.println("🔌 Conectando a PostgreSQL para obtener documentos reales...");
+
+            HikariConfig config = new HikariConfig();
+            config.setJdbcUrl("jdbc:postgresql://localhost:5433/votacion");
+            config.setUsername("admin");
+            config.setPassword("123");
+            config.setMaximumPoolSize(5);
+            config.setMinimumIdle(1);
+            config.setConnectionTimeout(3000);
+
+            dataSource = new HikariDataSource(config);
+
+            // Verificar conexión
+            try (Connection conn = dataSource.getConnection()) {
+                System.out.println("✅ Conexión a PostgreSQL establecida");
+                return true;
+            }
+
+        } catch (Exception e) {
+            System.err.println("❌ Error conectando a PostgreSQL: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Cargar documentos reales de la base de datos (suficientes para evitar duplicados)
+     */
+    private static boolean loadRealDocuments() {
+        try {
+            // Calcular cuántos documentos necesitamos (test + warmup + buffer)
+            int documentsNeeded = TOTAL_VOTES + 200 + 1000; // test + warmup + buffer de seguridad
+
+            System.out.println("📋 Cargando " + String.format("%,d", documentsNeeded) + " documentos únicos de ciudadanos...");
+
+            // CAMBIO: Cargar exactamente los documentos que necesitamos
+            String sql = "SELECT documento FROM ciudadano WHERE documento IS NOT NULL AND documento != '' LIMIT " + documentsNeeded;
+
+            try (Connection conn = dataSource.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql);
+                 ResultSet rs = ps.executeQuery()) {
+
+                int count = 0;
+                while (rs.next()) {
+                    String documento = rs.getString("documento");
+                    if (documento != null && !documento.trim().isEmpty()) {
+                        realDocuments.add(documento.trim());
+                        count++;
+                    }
+                }
+
+                System.out.println("✅ Documentos cargados: " + String.format("%,d", count));
+
+                if (count == 0) {
+                    System.err.println("❌ No se encontraron documentos en la base de datos");
+                    System.err.println("   Asegúrese de tener datos en la tabla 'ciudadano'");
+                    return false;
+                }
+
+                if (count < documentsNeeded) {
+                    System.err.println("❌ INSUFICIENTES DOCUMENTOS ÚNICOS");
+                    System.err.println("   Se necesitan: " + String.format("%,d", documentsNeeded));
+                    System.err.println("   Disponibles:  " + String.format("%,d", count));
+                    System.err.println("   Genere más ciudadanos en la BD o reduzca TOTAL_VOTES");
+                    return false;
+                } else {
+                    System.out.println("✅ Suficientes documentos únicos para test sin duplicados");
+                }
+
+                return true;
+
+            }
+
+        } catch (Exception e) {
+            System.err.println("❌ Error cargando documentos: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Obtener un documento real de la BD de forma secuencial (sin duplicados)
+     */
+    private static String getUniqueRealDocument() {
+        if (realDocuments.isEmpty()) {
+            return "12345678"; // Fallback
+        }
+
+        int index = documentIndex.getAndIncrement();
+        if (index >= realDocuments.size()) {
+            // Si se agotan los documentos, reiniciar (no debería pasar si calculamos bien)
+            documentIndex.set(0);
+            index = 0;
+            System.out.println("⚠️ Documentos agotados, reiniciando índice");
+        }
+
+        return realDocuments.get(index);
     }
 
     private static boolean executeLoadTest() {
@@ -87,7 +205,7 @@ public class HighLoadTest {
             // Verificar estado del sistema
             printSystemStatus(proxy);
 
-            // Warmup del sistema
+            // Warmup del sistema con documentos reales
             System.out.println("\n🔥 Iniciando warmup del sistema...");
             performSystemWarmup(proxy, votingPool);
 
@@ -159,14 +277,13 @@ public class HighLoadTest {
         int warmupVotes = 200;
         CountDownLatch warmupLatch = new CountDownLatch(warmupVotes);
 
-        System.out.println("   Enviando " + warmupVotes + " votos de warmup...");
+        System.out.println("   Enviando " + warmupVotes + " votos de warmup con documentos reales...");
 
         for (int i = 1; i <= warmupVotes; i++) {
-            final int voteId = i;
             pool.submit(() -> {
                 try {
-                    String citizenId = String.format("warmup_%06d", voteId);
-                    String candidateId = "candidate" + String.format("%03d", (voteId % 4) + 1);
+                    String citizenId = getUniqueRealDocument(); // Documento único
+                    String candidateId = "candidate" + String.format("%03d", (new Random().nextInt(4)) + 1);
                     proxy.submitVote(citizenId, candidateId);
                 } catch (Exception e) {
                     // Ignorar errores de warmup
@@ -216,7 +333,8 @@ public class HighLoadTest {
 
                 if (!testRunning) break;
 
-                String citizenId = String.format("load_m%02d_c%07d", machineId, i);
+                // CAMBIO PRINCIPAL: Usar documento único de la BD
+                String citizenId = getUniqueRealDocument();
                 String candidateId = candidates[random.nextInt(candidates.length)];
 
                 votesSubmitted.incrementAndGet();
@@ -352,6 +470,10 @@ public class HighLoadTest {
         System.out.println("█                    RESULTADOS FINALES                      █");
         System.out.println("████████████████████████████████████████████████████████████");
         System.out.println();
+        System.out.println("📋 DOCUMENTOS UTILIZADOS:");
+        System.out.println("    Documentos reales en BD:     " + String.format("%,d", realDocuments.size()));
+        System.out.println("    Documentos únicos usados:    " + String.format("%,d", Math.min(realDocuments.size(), votesSubmitted.get())));
+        System.out.println();
         System.out.println("⏱️  DURACIÓN Y VOLUMEN:");
         System.out.println("    Duración real:           " + String.format("%.1f", testDurationSec) + " segundos");
         System.out.println("    Votos enviados:          " + String.format("%,d", votesSubmitted.get()));
@@ -385,21 +507,21 @@ public class HighLoadTest {
             System.out.println("    ⚠️ No se pudo consultar estado final");
         }
 
-        // Evaluación de criterios
-        boolean throughputOK = actualThroughput >= (TARGET_VOTES_PER_SECOND * 0.95);
-        boolean successRateOK = successRate >= 95.0;
-        boolean latencyOK = p95 <= 1000;
-        boolean stabilityOK = votesFailed.get() < (votesCompleted.get() * 0.05);
+        // Evaluación de criterios (más estricta ya que no hay duplicados esperados)
+        boolean throughputOK = actualThroughput >= (TARGET_VOTES_PER_SECOND * 0.95); // 95% del objetivo
+        boolean successRateOK = successRate >= 98.0; // Muy alta porque no hay duplicados
+        boolean latencyOK = p95 <= 1000; // P95 bajo 1 segundo
+        boolean stabilityOK = votesFailed.get() < (votesCompleted.get() * 0.02); // Menos del 2% de errores
 
         System.out.println();
-        System.out.println("🔍 EVALUACIÓN DE CRITERIOS:");
+        System.out.println("🔍 EVALUACIÓN DE CRITERIOS (Estricta - sin duplicados esperados):");
         System.out.println("    Throughput ≥ 95%:        " + (throughputOK ? "✅ CUMPLE" : "❌ NO CUMPLE") +
                 " (" + String.format("%.1f%%", (actualThroughput / TARGET_VOTES_PER_SECOND * 100)) + ")");
-        System.out.println("    Tasa éxito ≥ 95%:        " + (successRateOK ? "✅ CUMPLE" : "❌ NO CUMPLE") +
+        System.out.println("    Tasa éxito ≥ 98%:        " + (successRateOK ? "✅ CUMPLE" : "❌ NO CUMPLE") +
                 " (" + String.format("%.1f%%", successRate) + ")");
         System.out.println("    Latencia P95 < 1s:       " + (latencyOK ? "✅ CUMPLE" : "❌ NO CUMPLE") +
                 " (" + p95 + "ms)");
-        System.out.println("    Estabilidad < 5% err:    " + (stabilityOK ? "✅ CUMPLE" : "❌ NO CUMPLE") +
+        System.out.println("    Estabilidad < 2% err:    " + (stabilityOK ? "✅ CUMPLE" : "❌ NO CUMPLE") +
                 " (" + String.format("%.1f%%", (double)votesFailed.get()/Math.max(votesCompleted.get(),1)*100) + ")");
 
         boolean testPassed = throughputOK && successRateOK && latencyOK && stabilityOK;
@@ -407,9 +529,9 @@ public class HighLoadTest {
         System.out.println();
         if (testPassed) {
             System.out.println("🎉 VEREDICTO: SISTEMA APROBADO PARA PRODUCCIÓN");
-            System.out.println("   ✅ Capacidad validada para " + TARGET_VOTES_PER_SECOND + " votos/segundo");
-            System.out.println("   ✅ Sistema estable bajo carga extrema");
-            System.out.println("   ✅ Latencias aceptables para votación en tiempo real");
+            System.out.println("   ✅ Sistema maneja documentos únicos correctamente");
+            System.out.println("   ✅ Alta tasa de éxito sin duplicados");
+            System.out.println("   ✅ Validación de ciudadanos en PostgreSQL perfecta");
         } else {
             System.out.println("⚠️ VEREDICTO: SISTEMA REQUIERE OPTIMIZACIONES");
             System.out.println("   🔧 Revisar configuración de thread pools");
@@ -435,6 +557,7 @@ public class HighLoadTest {
 
             System.out.println("🔧 Estado inicial: " + status);
             System.out.println("⏳ Votos pendientes: " + String.format("%,d", pending));
+            System.out.println("📋 Documentos únicos cargados: " + String.format("%,d", realDocuments.size()));
 
         } catch (Exception e) {
             System.out.println("⚠️ No se pudo verificar estado: " + e.getMessage());
