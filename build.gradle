@@ -64,6 +64,12 @@ subprojects {
         if (project.name == 'departmentalReliableMessaging') {
             implementation project(':centralServer')
         }
+
+        // ACTUALIZADO: votingMachine ahora necesita acceso a centralServer Y VoteStation
+        if (project.name == 'votingMachine') {
+            implementation project(':centralServer')
+            // VoteStation se genera automáticamente desde VoteStation.ice
+        }
     }
 
     //
@@ -93,6 +99,7 @@ subprojects {
                 )
             } else if (project.name == 'votingMachine') {
                 attributes(
+                        // ACTUALIZADO: Clase principal que incluye CLI + ICE
                         "Main-Class": "VotingMachine",
                         "Class-Path": configurations.runtimeClasspath.resolve().collect { it.toURI() }.join(' ')
                 )
@@ -116,6 +123,47 @@ subprojects {
     }
 
     //
+    // Task para generar código Ice automáticamente
+    //
+    task generateIceCode {
+        dependsOn 'compileSlice'
+        doLast {
+            println "Código Ice generado para ${project.name}"
+        }
+    }
+
+    //
+    // Task para verificar interfaces Ice
+    //
+    task verifyIceInterfaces {
+        doLast {
+            def sliceFiles = slice.java.files
+            println "Verificando interfaces Ice para ${project.name}:"
+            sliceFiles.each { file ->
+                if (file.exists()) {
+                    println "  ✅ ${file.name}"
+                } else {
+                    println "  ❌ ${file.name} - NO ENCONTRADO"
+                }
+            }
+        }
+    }
+
+    //
+    // NUEVA: Task para verificar interfaz VoteStation específicamente
+    //
+    task verifyVoteStationInterface {
+        doLast {
+            def voteStationFile = file("../VoteStation.ice")
+            if (voteStationFile.exists()) {
+                println "✅ VoteStation.ice encontrado - Interfaz ICE para automatización lista"
+            } else {
+                println "❌ VoteStation.ice NO encontrado - Crear archivo de interfaz ICE"
+            }
+        }
+    }
+
+    //
     // Task personalizada para mostrar dependencias de cada proyecto
     //
     task showDependencies {
@@ -126,6 +174,27 @@ subprojects {
                 println "  - ${dep.name}"
             }
             println ""
+        }
+    }
+
+    //
+    // NUEVA: Task para testing de VoteStation
+    //
+    task testVoteStation {
+        dependsOn 'build'
+        doLast {
+            if (project.name == 'votingMachine') {
+                println "🧪 Para probar VoteStation ICE interface:"
+                println "   1. Ejecutar: java -jar votingMachine/build/libs/votingMachine.jar"
+                println "   2. El servicio ICE estará disponible automáticamente"
+                println "   3. Usar identidad: VoteStation-[ID] para conexiones ICE"
+                println "   4. Métodos disponibles:"
+                println "      - int vote(string document, int candidateId)"
+                println "      - string getStationStatus()"
+                println "      - string getCandidateList()"
+                println "      - bool hasVoted(string document)"
+                println "      - void shutdown()"
+            }
         }
     }
 }

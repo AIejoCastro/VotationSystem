@@ -1,10 +1,14 @@
 //
-// VotingMachineEnhanced - Interface principal para votantes con notificaciones automáticas
+// VotingMachine - Interface CLI + Servicio ICE VoteStation
+// Cumple especificación: CLI básica + interfaz ICE para automatización
 //
 
 import Proxy.*;
 import Central.*;
 import CandidateNotification.*;
+import VotingStation.*;
+import com.zeroc.Ice.Current;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -14,8 +18,8 @@ public class VotingMachine {
     private static VotingProxyPrx votingProxy;
     private static CentralVotationPrx centralProxy;
     private static String machineId;
-    private static volatile boolean candidatesNeedRefresh = false;
     private static com.zeroc.Ice.Communicator communicator;
+    private static VoteStationI voteStationServant;
 
     // Cache local de candidatos
     private static volatile List<CandidateData> currentCandidates = new ArrayList<>();
@@ -23,27 +27,27 @@ public class VotingMachine {
     private static final Object candidatesLock = new Object();
 
     public static void main(String[] args) {
-        System.out.println("==============================================");
-        System.out.println("🗳️  SISTEMA DE VOTACIÓN ELECTRÓNICA - v2.0");
-        System.out.println("   Con Actualizaciones Automáticas");
-        System.out.println("==============================================");
+        System.out.println("══════════════════════════════════════════════════════════");
+        System.out.println("🗳️  ESTACIÓN DE VOTACIÓN ELECTRÓNICA - v3.0");
+        System.out.println("   Interfaz CLI + Servicio ICE para Automatización");
+        System.out.println("══════════════════════════════════════════════════════════");
 
         int status = 0;
         java.util.List<String> extraArgs = new java.util.ArrayList<>();
 
         try {
             communicator = com.zeroc.Ice.Util.initialize(args, extraArgs);
-            // Configurar conexión al VotingSite
             communicator.getProperties().setProperty("Ice.Default.Locator", "DemoIceGrid/Locator:default -h localhost -p 4061");
 
             if (!extraArgs.isEmpty()) {
-                System.err.println("too many arguments");
+                System.err.println("Argumentos adicionales no soportados");
                 status = 1;
             } else {
-                status = runEnhanced();
+                status = runVoteStation();
             }
         } catch (Exception e) {
             System.err.println("Error crítico del sistema: " + e.getMessage());
+            e.printStackTrace();
             status = 1;
         } finally {
             if (communicator != null) {
@@ -54,51 +58,65 @@ public class VotingMachine {
         System.exit(status);
     }
 
-    private static int runEnhanced() {
-        // Generar ID único para esta máquina de votación
-        machineId = "VM-" + System.currentTimeMillis() % 10000;
+    private static int runVoteStation() {
+        // Generar ID único para esta estación
+        machineId = "VS-" + System.currentTimeMillis() % 10000;
 
-        System.out.println("🆔 Máquina de Votación ID: " + machineId);
-        System.out.println("🔗 Conectando al sistema central...");
+        System.out.println("🆔 Estación de Votación ID: " + machineId);
+        System.out.println("🔗 Conectando al sistema de votación...");
 
-        // Conectar al VotingSite (proxy)
+        // Conectar al VotingSite (proxy principal)
+        if (!connectToVotingSystem()) {
+            return 1;
+        }
+
+        // Conectar al CentralServer para notificaciones
+        connectToCentralServer();
+
+        // Inicializar servicio ICE
+        if (!initializeICEService()) {
+            return 1;
+        }
+
+        // Iniciar interfaz CLI
+        return startCLIInterface();
+    }
+
+    /**
+     * Conectar al sistema de votación principal
+     */
+    private static boolean connectToVotingSystem() {
         try {
             votingProxy = VotingProxyPrx.checkedCast(
                     communicator.stringToProxy("VotingProxy:default -h localhost -p 9999")
             );
 
             if (votingProxy == null) {
-                System.err.println("❌ ERROR: No se pudo conectar al sistema central de votación");
-                System.err.println("   Verifique que VotingSite esté ejecutándose");
-                return 1;
+                System.err.println("❌ ERROR: No se pudo conectar al sistema de votación");
+                System.err.println("   Verifique que VotingSite esté ejecutándose en puerto 9999");
+                return false;
             }
 
             // Verificar conectividad
             String systemStatus = votingProxy.getSystemStatus();
-            System.out.println("✅ Conectado al sistema central");
+            System.out.println("✅ Conectado al sistema de votación");
             System.out.println("📊 Estado del sistema: " + systemStatus);
 
-            // Conectar al CentralServer para notificaciones
-            initializeNotifications();
+            return true;
 
         } catch (Exception e) {
-            System.err.println("❌ ERROR: Fallo al conectar con sistema central: " + e.getMessage());
-            System.err.println("   Verifique que VotingSite esté ejecutándose en puerto 9999");
-            return 1;
+            System.err.println("❌ ERROR: Fallo al conectar con sistema de votación: " + e.getMessage());
+            return false;
         }
-
-        // Iniciar interfaz de usuario mejorada
-        return startEnhancedVotingInterface();
     }
 
     /**
-     * Inicializar sistema de notificaciones con CentralServer
+     * Conectar al CentralServer para notificaciones
      */
-    private static void initializeNotifications() {
+    private static void connectToCentralServer() {
         try {
-            System.out.println("📡 Inicializando sistema de notificaciones automáticas...");
+            System.out.println("📡 Conectando al servidor central para notificaciones...");
 
-            // Conectar directamente al CentralServer
             centralProxy = CentralVotationPrx.checkedCast(
                     communicator.stringToProxy("CentralVotation:default -h localhost -p 8888"));
 
@@ -119,135 +137,108 @@ public class VotingMachine {
 
                 // Registrarse para notificaciones
                 centralProxy.registerVotingMachine(machineId, callbackProxy);
-                System.out.println("✅ Registrado con CentralServer para notificaciones push");
+                System.out.println("✅ Registrado con CentralServer para notificaciones automáticas");
 
                 // Obtener candidatos actuales
-                fetchCurrentCandidatesFromCentral();
+                fetchCurrentCandidates();
 
             } else {
-                System.out.println("⚠️  No se pudo conectar al CentralServer - usando polling");
+                System.out.println("⚠️  No se pudo conectar al CentralServer - funcionando sin notificaciones");
+                initializeDefaultCandidates();
             }
 
         } catch (Exception e) {
-            System.err.println("⚠️  Error inicializando notificaciones: " + e.getMessage());
+            System.err.println("⚠️  Error conectando al CentralServer: " + e.getMessage());
             System.err.println("   Continuando sin notificaciones automáticas");
+            initializeDefaultCandidates();
         }
     }
 
     /**
-     * Obtener candidatos del CentralServer
+     * Inicializar servicio ICE VoteStation
      */
-    private static void fetchCurrentCandidatesFromCentral() {
+    private static boolean initializeICEService() {
         try {
-            if (centralProxy != null) {
-                CandidateListResponse response = centralProxy.getCurrentCandidates();
+            System.out.println("🔧 Inicializando servicio ICE VoteStation...");
 
-                synchronized (candidatesLock) {
-                    currentCandidates = Arrays.asList(response.candidates);
-                    lastUpdateTimestamp = response.updateTimestamp;
-                }
+            // Crear adaptador para el servicio ICE
+            com.zeroc.Ice.ObjectAdapter iceAdapter = communicator.createObjectAdapterWithEndpoints(
+                    "VoteStationAdapter", "tcp -p " + (10000 + (int)(System.currentTimeMillis() % 1000)));
 
-                System.out.println("📋 Candidatos obtenidos del CentralServer: " + currentCandidates.size());
-            }
+            // Crear servant VoteStation
+            voteStationServant = new VoteStationI(votingProxy, centralProxy, machineId);
+
+            // Registrar servant
+            com.zeroc.Ice.Identity iceIdentity = com.zeroc.Ice.Util.stringToIdentity("VoteStation-" + machineId);
+            iceAdapter.add(voteStationServant, iceIdentity);
+
+            // Activar adaptador
+            iceAdapter.activate();
+
+            String endpoint = iceAdapter.getEndpoints()[0].toString();
+            System.out.println("✅ Servicio ICE VoteStation disponible en: " + endpoint);
+            System.out.println("🔍 Identidad ICE: VoteStation-" + machineId);
+            System.out.println("📝 Para pruebas automatizadas, usar:");
+            System.out.println("   VotingStation.VoteStationPrx:identity VoteStation-" + machineId + " @ " + endpoint);
+
+            return true;
+
         } catch (Exception e) {
-            System.err.println("⚠️  Error obteniendo candidatos del CentralServer: " + e.getMessage());
+            System.err.println("❌ ERROR: No se pudo inicializar servicio ICE: " + e.getMessage());
+            return false;
         }
     }
 
     /**
-     * Callback servant para recibir notificaciones
+     * Interfaz CLI básica según especificación
      */
-    public static class VotingMachineCallbackI implements VotingMachineCallback {
-
-        @Override
-        public void onCandidatesUpdated(CandidateUpdateNotification notification, com.zeroc.Ice.Current current) {
-            String timestamp = LocalDateTime.now().format(timeFormatter);
-
-            System.out.println("\n[" + timestamp + "] 🔔 ACTUALIZACIÓN DE CANDIDATOS RECIBIDA");
-            System.out.println("═══════════════════════════════════════════════════════════");
-            System.out.println("Candidatos actualizados: " + notification.totalCandidates);
-            System.out.println("Timestamp de actualización: " + new Date(notification.updateTimestamp));
-
-            synchronized (candidatesLock) {
-                currentCandidates = Arrays.asList(notification.candidates);
-                lastUpdateTimestamp = notification.updateTimestamp;
-            }
-
-            System.out.println("✅ Candidatos actualizados en la máquina de votación");
-            System.out.println("═══════════════════════════════════════════════════════════");
-
-            // Mostrar candidatos actualizados
-            showUpdatedCandidates();
-        }
-    }
-
-    private static int startEnhancedVotingInterface() {
+    private static int startCLIInterface() {
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println("\n==============================================");
-        System.out.println("BIENVENIDO AL SISTEMA DE VOTACIÓN v2.0");
-        System.out.println("Con Actualizaciones Automáticas de Candidatos");
-        System.out.println("==============================================");
+        System.out.println("\n══════════════════════════════════════════════════════════");
+        System.out.println("ESTACIÓN DE VOTACIÓN - INTERFAZ CLI");
+        System.out.println("══════════════════════════════════════════════════════════");
 
-        showEnhancedMainMenu();
+        showWelcomeMessage();
 
         while (true) {
-            System.out.print("\n➤ Seleccione una opción: ");
+            System.out.println("\n" + "─".repeat(60));
+            System.out.println("OPCIONES DISPONIBLES:");
+            System.out.println("  1) Votar                    - Emitir voto");
+            System.out.println("  2) Ver Candidatos           - Lista de candidatos");
+            System.out.println("  3) Estado del Sistema       - Información del sistema");
+            System.out.println("  4) Ayuda                    - Mostrar información");
+            System.out.println("  5) Salir                    - Cerrar estación");
+            System.out.println("─".repeat(60));
+
+            System.out.print("➤ Seleccione una opción (1-5): ");
             String input = scanner.nextLine().trim();
 
             try {
-                switch (input.toLowerCase()) {
+                switch (input) {
                     case "1":
-                    case "votar":
-                        processEnhancedVote(scanner);
+                        processVoteCLI(scanner);
                         break;
 
                     case "2":
-                    case "candidatos":
-                        showCurrentCandidates();
+                        showCandidatesCLI();
                         break;
 
                     case "3":
-                    case "estado":
-                        showSystemStatus();
+                        showSystemStatusCLI();
                         break;
 
                     case "4":
-                    case "pendientes":
-                        showPendingVotes();
+                        showHelpCLI();
                         break;
 
                     case "5":
-                    case "refresh":
-                        refreshCandidates();
-                        break;
-
-                    case "6":
-                    case "ayuda":
-                    case "?":
-                        showEnhancedMainMenu();
-                        break;
-
-                    case "7":
-                    case "salir":
-                    case "exit":
-                        System.out.println("\n👋 Gracias por usar el sistema de votación");
-                        System.out.println("🔒 Cerrando sesión de manera segura...");
-
-                        // Desregistrarse del CentralServer
-                        try {
-                            if (centralProxy != null) {
-                                centralProxy.unregisterVotingMachine(machineId);
-                                System.out.println("✅ Desregistrado del CentralServer");
-                            }
-                        } catch (Exception e) {
-                            // Ignorar errores de desregistro
-                        }
-
+                        System.out.println("\n👋 Cerrando estación de votación...");
+                        cleanup();
                         return 0;
 
                     default:
-                        System.out.println("❌ Opción no válida. Digite '?' para ver el menú");
+                        System.out.println("❌ Opción inválida. Seleccione un número del 1 al 5.");
                         break;
                 }
             } catch (Exception e) {
@@ -256,157 +247,50 @@ public class VotingMachine {
         }
     }
 
-    private static void showEnhancedMainMenu() {
-        System.out.println("\n📋 OPCIONES DISPONIBLES:");
-        System.out.println("  1) Votar                    - Emitir su voto");
-        System.out.println("  2) Ver Candidatos           - Lista actualizada de candidatos");
-        System.out.println("  3) Estado del Sistema       - Ver estado actual");
-        System.out.println("  4) Votos Pendientes         - Ver votos en cola");
-        System.out.println("  5) Actualizar Candidatos    - Forzar actualización manual");
-        System.out.println("  6) Ayuda                    - Mostrar este menú");
-        System.out.println("  7) Salir                    - Cerrar aplicación");
-        System.out.println("─────────────────────────────────────────────────");
-
-        if (candidatesNeedRefresh) {
-            System.out.println("🔔 NOTA: Hay actualizaciones pendientes de candidatos");
-        }
-    }
-
     /**
-     * Mostrar candidatos actuales desde el sistema de notificaciones
+     * Procesar voto a través de CLI - ESPECIFICACIÓN CUMPLIDA
      */
-    private static void showCurrentCandidates() {
-        System.out.println("\n📋 CANDIDATOS ACTUALES");
-        System.out.println("═══════════════════════════════");
-
-        List<CandidateData> candidates;
-        long lastUpdate;
-
-        synchronized (candidatesLock) {
-            if (currentCandidates.isEmpty()) {
-                System.out.println("⚠️  Cargando candidatos del servidor...");
-                fetchCurrentCandidatesFromCentral();
-
-                if (currentCandidates.isEmpty()) {
-                    System.out.println("❌ No se pudieron obtener los candidatos");
-                    return;
-                }
-            }
-
-            candidates = new ArrayList<>(currentCandidates);
-            lastUpdate = lastUpdateTimestamp;
-        }
-
-        System.out.println("🕒 Última actualización: " + new Date(lastUpdate));
-        System.out.println("─────────────────────────────────");
-
-        int displayPosition = 1;
-        for (CandidateData candidate : candidates) {
-            if (!"blank".equals(candidate.candidateId)) {
-                System.out.printf("  %s %d) %-25s - %s%n",
-                        candidate.photo,
-                        displayPosition,
-                        candidate.fullName,
-                        candidate.partyName);
-
-                if (!candidate.biography.isEmpty() && !"Sin biografía disponible".equals(candidate.biography)) {
-                    System.out.printf("     💭 %s%n", candidate.biography);
-                }
-                displayPosition++;
-            }
-        }
-
-        System.out.println("  📊 " + displayPosition + ") VOTO EN BLANCO    - Sin preferencia");
-        System.out.println("─────────────────────────────────");
-        System.out.println("✅ Total de opciones: " + displayPosition);
-    }
-
-    /**
-     * Mostrar candidatos actualizados en consola (para notificaciones)
-     */
-    private static void showUpdatedCandidates() {
-        List<CandidateData> candidates;
-
-        synchronized (candidatesLock) {
-            candidates = new ArrayList<>(currentCandidates);
-        }
-
-        if (candidates.isEmpty()) {
-            System.out.println("⚠️  No hay candidatos disponibles");
-            return;
-        }
-
-        System.out.println("\n📋 CANDIDATOS ACTUALIZADOS:");
-        System.out.println("─────────────────────────────────────────────────────");
-
-        for (CandidateData candidate : candidates) {
-            if (!"blank".equals(candidate.candidateId)) {
-                System.out.printf("   %s %d) %-20s - %s%n",
-                        candidate.photo,
-                        candidate.position,
-                        candidate.fullName,
-                        candidate.partyName);
-            }
-        }
-
-        System.out.println("   📊 5) VOTO EN BLANCO    - Sin preferencia");
-        System.out.println("─────────────────────────────────────────────────────");
-        System.out.println("ℹ️  Los candidatos han sido actualizados automáticamente");
-        System.out.println("   Puede continuar votando con la nueva lista");
-    }
-
-    /**
-     * Proceso de votación con candidatos actualizados
-     */
-    private static void processEnhancedVote(Scanner scanner) {
+    private static void processVoteCLI(Scanner scanner) {
         System.out.println("\n🗳️  PROCESO DE VOTACIÓN");
-        System.out.println("═══════════════════════════");
+        System.out.println("═".repeat(50));
 
-        // Verificar que tenemos candidatos actualizados
-        synchronized (candidatesLock) {
-            if (currentCandidates.isEmpty()) {
-                System.out.println("📡 Obteniendo candidatos actualizados...");
-                fetchCurrentCandidatesFromCentral();
+        // REQUERIMIENTO: Capturar documento de identidad
+        System.out.print("📋 Ingrese su documento de identidad: ");
+        String document = scanner.nextLine().trim();
 
-                if (currentCandidates.isEmpty()) {
-                    System.err.println("❌ No se pudieron obtener los candidatos. Intente más tarde.");
-                    return;
-                }
-            }
-        }
-
-        // Solicitar cédula
-        System.out.print("📋 Ingrese su número de cédula: ");
-        String citizenId = scanner.nextLine().trim();
-
-        if (citizenId.isEmpty()) {
-            System.out.println("❌ La cédula no puede estar vacía");
+        if (document.isEmpty()) {
+            System.out.println("❌ El documento de identidad no puede estar vacío");
             return;
         }
 
-        // Validar formato básico de cédula
-        if (!citizenId.matches("\\d{6,12}")) {
-            System.out.println("❌ Formato de cédula inválido. Use solo números (6-12 dígitos)");
+        // Validación básica del documento
+        if (!document.matches("\\d{6,12}")) {
+            System.out.println("❌ Formato de documento inválido. Use solo números (6-12 dígitos)");
             return;
         }
 
-        // Mostrar candidatos actualizados
-        showCurrentCandidates();
+        // REQUERIMIENTO: Mostrar candidatos y capturar selección
+        showCandidatesForVoting();
 
-        // Solicitar voto
-        System.out.print("\n🎯 Seleccione el número del candidato: ");
+        System.out.print("\n🎯 Seleccione el número del candidato (1-5): ");
         String candidateInput = scanner.nextLine().trim();
 
-        String candidateId = mapCandidateSelectionEnhanced(candidateInput);
-        if (candidateId == null) {
-            System.out.println("❌ Selección de candidato inválida");
+        int candidateId;
+        try {
+            candidateId = Integer.parseInt(candidateInput);
+            if (candidateId < 1 || candidateId > 5) {
+                System.out.println("❌ Selección inválida. Debe ser un número entre 1 y 5");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("❌ Debe ingresar un número válido");
             return;
         }
 
-        // Confirmar voto con información del candidato
-        String candidateName = getCandidateNameEnhanced(candidateId);
+        // Confirmar voto
+        String candidateName = getCandidateNameByPosition(candidateId);
         System.out.println("\n✅ CONFIRMACIÓN DE VOTO");
-        System.out.println("   📋 Cédula: " + citizenId);
+        System.out.println("   📋 Documento: " + document);
         System.out.println("   🎯 Candidato: " + candidateName);
         System.out.print("🤔 ¿Confirma su voto? (S/N): ");
 
@@ -416,186 +300,393 @@ public class VotingMachine {
             return;
         }
 
-        // Enviar voto al sistema
-        submitVoteToSystemEnhanced(citizenId, candidateId);
+        // PROCESAR VOTO usando el servicio ICE interno
+        int result = voteStationServant.vote(document, candidateId, new MockCurrent());
+
+        // Mostrar resultado según especificación
+        handleVoteResult(result, document, candidateName);
     }
 
     /**
-     * Mapeo de selección con candidatos dinámicos
+     * Manejar resultado del voto según códigos de la especificación
      */
-    private static String mapCandidateSelectionEnhanced(String input) {
-        try {
-            int selection = Integer.parseInt(input);
-
-            List<CandidateData> candidates;
-            synchronized (candidatesLock) {
-                candidates = new ArrayList<>(currentCandidates);
-            }
-
-            // Filtrar candidatos activos (no blank)
-            List<CandidateData> activeCandidates = new ArrayList<>();
-            for (CandidateData candidate : candidates) {
-                if (!"blank".equals(candidate.candidateId)) {
-                    activeCandidates.add(candidate);
-                }
-            }
-
-            // Ordenar por posición
-            activeCandidates.sort((a, b) -> Integer.compare(a.position, b.position));
-
-            if (selection >= 1 && selection <= activeCandidates.size()) {
-                return activeCandidates.get(selection - 1).candidateId;
-            } else if (selection == activeCandidates.size() + 1) {
-                return "blank"; // Voto en blanco
-            } else {
-                return null;
-            }
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    /**
-     * Obtener nombre de candidato desde datos actualizados
-     */
-    private static String getCandidateNameEnhanced(String candidateId) {
-        List<CandidateData> candidates;
-        synchronized (candidatesLock) {
-            candidates = new ArrayList<>(currentCandidates);
-        }
-
-        for (CandidateData candidate : candidates) {
-            if (candidate.candidateId.equals(candidateId)) {
-                if ("blank".equals(candidateId)) {
-                    return "VOTO EN BLANCO";
-                } else {
-                    return candidate.fullName + " (" + candidate.partyName + ")";
-                }
-            }
-        }
-
-        // Fallback
-        switch (candidateId) {
-            case "blank": return "VOTO EN BLANCO";
-            default: return "Candidato: " + candidateId;
-        }
-    }
-
-    /**
-     * Envío de voto con mejor logging
-     */
-    private static void submitVoteToSystemEnhanced(String citizenId, String candidateId) {
+    private static void handleVoteResult(int result, String document, String candidateName) {
         String timestamp = LocalDateTime.now().format(timeFormatter);
 
-        System.out.println("\n⚡ Procesando voto...");
-        System.out.println("[" + timestamp + "] [" + machineId + "] 📡 Enviando voto al sistema central");
+        switch (result) {
+            case 0:
+                System.out.println("\n🎉 VOTO REGISTRADO EXITOSAMENTE");
+                System.out.println("═".repeat(50));
+                System.out.println("[" + timestamp + "] ✅ Su voto ha sido procesado correctamente");
+                System.out.println("🙏 ¡Gracias por participar en el proceso democrático!");
+                break;
 
-        try {
-            long startTime = System.currentTimeMillis();
-            String result = votingProxy.submitVote(citizenId, candidateId);
-            long latency = System.currentTimeMillis() - startTime;
+            case 2:
+                System.out.println("\n⚠️  VOTO DUPLICADO DETECTADO");
+                System.out.println("═".repeat(50));
+                System.out.println("[" + timestamp + "] El ciudadano " + document + " ya emitió su voto");
+                System.out.println("📊 Cada ciudadano puede votar una sola vez");
+                break;
 
-            timestamp = LocalDateTime.now().format(timeFormatter);
-            System.out.println("\n🎉 VOTO REGISTRADO EXITOSAMENTE");
-            System.out.println("═══════════════════════════════════════");
-            System.out.println("[" + timestamp + "] ✅ ID de confirmación: " + result);
-            System.out.println("[" + timestamp + "] ⚡ Tiempo de procesamiento: " + latency + "ms");
-            System.out.println("\n🙏 ¡Su voto ha sido registrado correctamente!");
-            System.out.println("🏛️  Gracias por participar en el proceso democrático");
-
-        } catch (VotingSystemUnavailableException e) {
-            timestamp = LocalDateTime.now().format(timeFormatter);
-            System.out.println("\n⚠️  SISTEMA TEMPORALMENTE NO DISPONIBLE");
-            System.out.println("═══════════════════════════════════════");
-            System.out.println("[" + timestamp + "] 📋 Razón: " + e.reason);
-            System.out.println("[" + timestamp + "] 💾 Su voto ha sido guardado y será procesado automáticamente");
-            System.out.println("\n✅ Su voto está en cola y será registrado tan pronto el sistema esté disponible");
-
-        } catch (InvalidVoteException e) {
-            timestamp = LocalDateTime.now().format(timeFormatter);
-            System.out.println("\n❌ VOTO INVÁLIDO");
-            System.out.println("═══════════════════════════════════════");
-            System.out.println("[" + timestamp + "] 📋 Razón: " + e.reason);
-            System.out.println("\n🔄 No se pudo procesar su voto. Verifique los datos e intente nuevamente");
-
-        } catch (Exception e) {
-            timestamp = LocalDateTime.now().format(timeFormatter);
-            System.out.println("\n🔌 ERROR DE COMUNICACIÓN");
-            System.out.println("═══════════════════════════════════════");
-            System.out.println("[" + timestamp + "] ⚠️  Error: " + e.getMessage());
-            System.out.println("\n🔧 Error de conectividad. Contacte al administrador del sistema");
+            default:
+                System.out.println("\n❌ ERROR PROCESANDO VOTO");
+                System.out.println("═".repeat(50));
+                System.out.println("[" + timestamp + "] Código de error: " + result);
+                System.out.println("🔧 Contacte al administrador del sistema");
+                break;
         }
     }
 
     /**
-     * Actualización manual de candidatos
+     * Mostrar candidatos para proceso de votación
      */
-    private static void refreshCandidates() {
-        System.out.println("\n🔄 Actualizando candidatos...");
+    private static void showCandidatesForVoting() {
+        System.out.println("\n📋 CANDIDATOS DISPONIBLES");
+        System.out.println("═".repeat(50));
 
-        try {
-            System.out.println("📡 Consultando candidatos al servidor central...");
-            fetchCurrentCandidatesFromCentral();
+        synchronized (candidatesLock) {
+            if (currentCandidates.isEmpty()) {
+                showDefaultCandidatesForVoting();
+                return;
+            }
 
-            candidatesNeedRefresh = false;
-            System.out.println("✅ Candidatos actualizados exitosamente");
+            int position = 1;
+            for (CandidateData candidate : currentCandidates) {
+                if (!"blank".equals(candidate.candidateId)) {
+                    System.out.printf("  %d) %-25s - %s%n",
+                            position,
+                            candidate.fullName,
+                            candidate.partyName);
+                    position++;
+                }
+            }
 
-        } catch (Exception e) {
-            System.err.println("❌ Error actualizando candidatos: " + e.getMessage());
-            System.err.println("   Los candidatos se actualizarán automáticamente cuando sea posible");
+            System.out.printf("  %d) VOTO EN BLANCO        - Sin preferencia%n", position);
+        }
+
+        System.out.println("─".repeat(50));
+    }
+
+    /**
+     * Candidatos por defecto para votación
+     */
+    private static void showDefaultCandidatesForVoting() {
+        System.out.println("  1) Juan Pérez            - Partido Azul");
+        System.out.println("  2) María García          - Partido Verde");
+        System.out.println("  3) Carlos López          - Partido Rojo");
+        System.out.println("  4) Ana Martínez          - Partido Amarillo");
+        System.out.println("  5) VOTO EN BLANCO        - Sin preferencia");
+    }
+
+    /**
+     * Obtener nombre de candidato por posición
+     */
+    private static String getCandidateNameByPosition(int position) {
+        synchronized (candidatesLock) {
+            if (currentCandidates.isEmpty()) {
+                return getDefaultCandidateName(position);
+            }
+
+            int currentPos = 1;
+            for (CandidateData candidate : currentCandidates) {
+                if (!"blank".equals(candidate.candidateId)) {
+                    if (currentPos == position) {
+                        return candidate.fullName + " (" + candidate.partyName + ")";
+                    }
+                    currentPos++;
+                }
+            }
+
+            // Si llegamos aquí, es voto en blanco
+            if (position == currentPos) {
+                return "VOTO EN BLANCO";
+            }
+
+            return "Candidato " + position; // Fallback
         }
     }
 
-    private static void showSystemStatus() {
+    /**
+     * Nombres de candidatos por defecto
+     */
+    private static String getDefaultCandidateName(int position) {
+        switch (position) {
+            case 1: return "Juan Pérez (Partido Azul)";
+            case 2: return "María García (Partido Verde)";
+            case 3: return "Carlos López (Partido Rojo)";
+            case 4: return "Ana Martínez (Partido Amarillo)";
+            case 5: return "VOTO EN BLANCO";
+            default: return "Candidato " + position;
+        }
+    }
+
+    /**
+     * Mostrar candidatos en CLI
+     */
+    private static void showCandidatesCLI() {
+        System.out.println("\n📋 LISTA COMPLETA DE CANDIDATOS");
+        System.out.println("═".repeat(60));
+
+        synchronized (candidatesLock) {
+            if (currentCandidates.isEmpty()) {
+                showDefaultCandidatesCLI();
+                return;
+            }
+
+            System.out.println("🕒 Última actualización: " + new Date(lastUpdateTimestamp));
+            System.out.println("─".repeat(60));
+
+            int position = 1;
+            for (CandidateData candidate : currentCandidates) {
+                if (!"blank".equals(candidate.candidateId)) {
+                    System.out.printf("  %s %d) %-25s%n", candidate.photo, position, candidate.fullName);
+                    System.out.printf("     🏛️  Partido: %s%n", candidate.partyName);
+
+                    if (!candidate.biography.isEmpty() && !"Sin biografía disponible".equals(candidate.biography)) {
+                        System.out.printf("     💭 %s%n", candidate.biography);
+                    }
+
+                    System.out.println();
+                    position++;
+                }
+            }
+
+            System.out.printf("  📊 %d) VOTO EN BLANCO%n", position);
+            System.out.println("     🗳️  Opción para ciudadanos sin preferencia específica");
+        }
+
+        System.out.println("═".repeat(60));
+    }
+
+    /**
+     * Candidatos por defecto para CLI
+     */
+    private static void showDefaultCandidatesCLI() {
+        System.out.println("  👨‍💼 1) Juan Pérez");
+        System.out.println("     🏛️  Partido: Partido Azul");
+        System.out.println("     💭 Candidato con experiencia en administración pública");
+        System.out.println();
+
+        System.out.println("  👩‍💼 2) María García");
+        System.out.println("     🏛️  Partido: Partido Verde");
+        System.out.println("     💭 Activista ambiental y ex-alcaldesa");
+        System.out.println();
+
+        System.out.println("  👨‍🏫 3) Carlos López");
+        System.out.println("     🏛️  Partido: Partido Rojo");
+        System.out.println("     💭 Profesor universitario y líder sindical");
+        System.out.println();
+
+        System.out.println("  👩‍⚖️ 4) Ana Martínez");
+        System.out.println("     🏛️  Partido: Partido Amarillo");
+        System.out.println("     💭 Abogada constitucionalista");
+        System.out.println();
+
+        System.out.println("  📊 5) VOTO EN BLANCO");
+        System.out.println("     🗳️  Opción para ciudadanos sin preferencia específica");
+    }
+
+    /**
+     * Mostrar estado del sistema en CLI
+     */
+    private static void showSystemStatusCLI() {
         System.out.println("\n🔧 ESTADO DEL SISTEMA");
-        System.out.println("═══════════════════════");
+        System.out.println("═".repeat(50));
 
         try {
-            String status = votingProxy.getSystemStatus();
-            System.out.println("🔧 Estado: " + status);
+            // Estado del sistema de votación
+            String systemStatus = votingProxy.getSystemStatus();
+            System.out.println("🔧 Sistema de votación: " + systemStatus);
 
             int pendingVotes = votingProxy.getPendingVotesCount();
             System.out.println("📊 Votos en cola: " + pendingVotes);
+
+            // Estado de la estación
+            System.out.println("🆔 Estación ID: " + machineId);
 
             // Estado de notificaciones
             synchronized (candidatesLock) {
                 if (lastUpdateTimestamp > 0) {
                     System.out.println("📡 Notificaciones: ✅ ACTIVAS");
                     System.out.println("🕒 Última actualización: " + new Date(lastUpdateTimestamp));
+                    System.out.println("📋 Candidatos cargados: " + currentCandidates.size());
                 } else {
                     System.out.println("📡 Notificaciones: ⚠️  DESCONECTADAS");
+                    System.out.println("📋 Usando candidatos por defecto");
                 }
             }
 
-            if (pendingVotes > 0) {
-                System.out.println("\n⚡ El sistema está procesando votos pendientes automáticamente");
+            // Estado del servicio ICE
+            if (voteStationServant != null) {
+                System.out.println("🔧 Servicio ICE: ✅ ACTIVO");
+                System.out.println("📝 Interfaz: VoteStation-" + machineId);
             } else {
-                System.out.println("\n✅ Todos los votos han sido procesados exitosamente");
+                System.out.println("🔧 Servicio ICE: ❌ INACTIVO");
+            }
+
+            if (pendingVotes > 0) {
+                System.out.println("\n⚡ Procesando votos pendientes automáticamente...");
+            } else {
+                System.out.println("\n✅ Sistema operando normalmente");
             }
 
         } catch (Exception e) {
-            System.out.println("❌ Error obteniendo estado del sistema: " + e.getMessage());
+            System.out.println("❌ Error consultando estado: " + e.getMessage());
+        }
+
+        System.out.println("═".repeat(50));
+    }
+
+    /**
+     * Mostrar ayuda en CLI
+     */
+    private static void showHelpCLI() {
+        System.out.println("\n📖 AYUDA - ESTACIÓN DE VOTACIÓN");
+        System.out.println("═".repeat(60));
+        System.out.println();
+        System.out.println("📋 CÓMO VOTAR:");
+        System.out.println("   1. Seleccione la opción 'Votar' del menú principal");
+        System.out.println("   2. Ingrese su documento de identidad (solo números)");
+        System.out.println("   3. Seleccione el candidato de su preferencia (1-5)");
+        System.out.println("   4. Confirme su selección");
+        System.out.println();
+        System.out.println("🔧 SERVICIOS DISPONIBLES:");
+        System.out.println("   • Interfaz CLI para votación manual");
+        System.out.println("   • Servicio ICE para automatización de pruebas");
+        System.out.println("   • Notificaciones automáticas de candidatos");
+        System.out.println("   • Recuperación automática de fallos");
+        System.out.println();
+        System.out.println("📡 CÓDIGOS DE RESULTADO (Servicio ICE):");
+        System.out.println("   • 0: Voto exitoso");
+        System.out.println("   • 2: Ciudadano ya votó (duplicado)");
+        System.out.println("   • Otros: Errores del sistema");
+        System.out.println();
+        System.out.println("🆔 IDENTIFICACIÓN:");
+        System.out.println("   • Estación: " + machineId);
+        System.out.println("   • Servicio ICE: VoteStation-" + machineId);
+        System.out.println();
+        System.out.println("❓ Para soporte técnico, contacte al administrador");
+        System.out.println("═".repeat(60));
+    }
+
+    /**
+     * Mostrar mensaje de bienvenida
+     */
+    private static void showWelcomeMessage() {
+        System.out.println();
+        System.out.println("🗳️  Bienvenido al Sistema de Votación Electrónica");
+        System.out.println();
+        System.out.println("📋 INFORMACIÓN IMPORTANTE:");
+        System.out.println("   • Cada ciudadano puede votar UNA SOLA VEZ");
+        System.out.println("   • Su voto es secreto y seguro");
+        System.out.println("   • El sistema detecta automáticamente votos duplicados");
+        System.out.println("   • En caso de fallos, su voto se guarda automáticamente");
+        System.out.println();
+        System.out.println("🔧 FUNCIONALIDADES:");
+        System.out.println("   • Interfaz CLI para votación interactiva");
+        System.out.println("   • Servicio ICE para pruebas automatizadas");
+        System.out.println("   • Actualizaciones automáticas de candidatos");
+        System.out.println();
+    }
+
+    // ============================================================================
+    // CALLBACKS Y NOTIFICACIONES
+    // ============================================================================
+
+    /**
+     * Callback servant para recibir notificaciones de candidatos
+     */
+    public static class VotingMachineCallbackI implements VotingMachineCallback {
+
+        @Override
+        public void onCandidatesUpdated(CandidateUpdateNotification notification, com.zeroc.Ice.Current current) {
+            String timestamp = LocalDateTime.now().format(timeFormatter);
+
+            System.out.println("\n[" + timestamp + "] 🔔 ACTUALIZACIÓN DE CANDIDATOS RECIBIDA");
+            System.out.println("═".repeat(70));
+            System.out.println("Candidatos actualizados: " + notification.totalCandidates);
+            System.out.println("Timestamp: " + new Date(notification.updateTimestamp));
+
+            synchronized (candidatesLock) {
+                currentCandidates = Arrays.asList(notification.candidates);
+                lastUpdateTimestamp = notification.updateTimestamp;
+            }
+
+            // Actualizar también el servicio ICE
+            if (voteStationServant != null) {
+                voteStationServant.updateCandidates(Arrays.asList(notification.candidates), notification.updateTimestamp);
+            }
+
+            System.out.println("✅ Candidatos actualizados en estación " + machineId);
+            System.out.println("═".repeat(70));
         }
     }
 
-    private static void showPendingVotes() {
-        System.out.println("\n📊 VOTOS PENDIENTES");
-        System.out.println("═══════════════════════");
+    // ============================================================================
+    // MÉTODOS DE UTILIDAD
+    // ============================================================================
 
+    /**
+     * Obtener candidatos del CentralServer
+     */
+    private static void fetchCurrentCandidates() {
         try {
-            int pendingCount = votingProxy.getPendingVotesCount();
+            if (centralProxy != null) {
+                CandidateListResponse response = centralProxy.getCurrentCandidates();
 
-            if (pendingCount == 0) {
-                System.out.println("✅ No hay votos pendientes");
-                System.out.println("🎯 Todos los votos han sido procesados exitosamente");
-            } else {
-                System.out.println("📋 Votos en cola de procesamiento: " + pendingCount);
-                System.out.println("⚡ El sistema está trabajando para procesar estos votos");
-                System.out.println("🔄 Los votos serán procesados automáticamente cuando el sistema esté disponible");
+                synchronized (candidatesLock) {
+                    currentCandidates = Arrays.asList(response.candidates);
+                    lastUpdateTimestamp = response.updateTimestamp;
+                }
+
+                System.out.println("📋 Candidatos obtenidos: " + currentCandidates.size());
             }
-
         } catch (Exception e) {
-            System.out.println("❌ Error consultando votos pendientes: " + e.getMessage());
+            System.err.println("⚠️  Error obteniendo candidatos: " + e.getMessage());
+            initializeDefaultCandidates();
         }
+    }
+
+    /**
+     * Inicializar candidatos por defecto
+     */
+    private static void initializeDefaultCandidates() {
+        // Los candidatos por defecto se manejan dinámicamente en los métodos de visualización
+        synchronized (candidatesLock) {
+            currentCandidates.clear();
+            lastUpdateTimestamp = 0;
+        }
+        System.out.println("📋 Usando candidatos por defecto");
+    }
+
+    /**
+     * Limpieza al cerrar
+     */
+    private static void cleanup() {
+        try {
+            if (centralProxy != null) {
+                centralProxy.unregisterVotingMachine(machineId);
+                System.out.println("✅ Desregistrado del CentralServer");
+            }
+        } catch (Exception e) {
+            // Ignorar errores de limpieza
+        }
+
+        System.out.println("🔒 Estación cerrada de manera segura");
+    }
+
+    /**
+     * Mock Current para uso interno
+     */
+    private static class MockCurrent extends Current {
+        public com.zeroc.Ice.ObjectAdapter adapter = null;
+        public com.zeroc.Ice.Connection con = null;
+        public com.zeroc.Ice.Identity id = new com.zeroc.Ice.Identity();
+        public String facet = "";
+        public String operation = "vote";
+        public com.zeroc.Ice.OperationMode mode = com.zeroc.Ice.OperationMode.Normal;
+        public java.util.Map<String, String> ctx = new java.util.HashMap<String, String>();
+        public int requestId = 1;
+        public com.zeroc.Ice.EncodingVersion encoding = com.zeroc.Ice.Util.currentEncoding();
     }
 }
