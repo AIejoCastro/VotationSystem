@@ -4,41 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9ee6b384-72c4-4b60-a4b5-1564fc65236d" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/candidates.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/central-citizen-acks.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/central-votes.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/departmental-vote-acks.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-1/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-1/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-1/revision" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-10/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-10/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-10/revision" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-11/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-11/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-11/revision" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-12/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-12/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-12/revision" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-2/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-2/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-2/revision" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-3/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-3/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-3/revision" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-4/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-4/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-4/revision" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-5/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-5/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-5/revision" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-6/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-6/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-6/revision" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-7/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-7/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-7/revision" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-8/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-8/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-8/revision" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-9/config/config" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-9/config/config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-9/revision" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/parties.csv" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/registry/data.mdb" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/registry/data.mdb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/vote-acks.log" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/testFramework/src/main/java/HighLoadTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/testFramework/src/main/java/HighLoadTest.java" afterDir="false" />
-    </list>
+    <list default="true" id="9ee6b384-72c4-4b60-a4b5-1564fc65236d" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
