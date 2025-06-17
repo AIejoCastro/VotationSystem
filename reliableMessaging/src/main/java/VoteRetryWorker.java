@@ -155,6 +155,13 @@ public class VoteRetryWorker extends Thread {
 
                 // Si hay error de conexión, parar procesamiento y reintentar todo
                 break;
+            } catch (CitizenNotRegisteredException e) {
+                // Ciudadano no registrado - no reintentar
+                String voteKey = vote[0] + "|" + vote[1];
+                ackManager.timeoutVote(voteKey);  // ← Cambiar a timeoutVote
+
+                System.out.println("[ReliableMessaging] ❌ Ciudadano NO registrado: " + vote[0]);
+                // No incrementar errorCount - es un rechazo válido, no un error de sistem
             }
         }
 

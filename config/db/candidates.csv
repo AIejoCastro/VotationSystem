@@ -1,0 +1,7 @@
+candidateId,firstName,lastName,partyId,position,photo,biography,isActive
+blank,Voto,En Blanco,blank,99,📊,"Opción para votantes que no desean elegir candidato específico",true
+candidate005,Pedro,Rodríguez,party001,5,👨‍💼,"Economista especializado en política fiscal",true
+candidate003,David,Molta,party003,3,👨‍🏫,"Profesor universitario y líder sindical",true
+candidate004,Ana,Martínez,party004,4,👩‍⚖️,"Abogada constitucionalista",true
+candidate001,Juanito,Pérez,party001,1,👨‍💼,"Candidato con experiencia en administración pública",true
+candidate002,Alejandro,Castro,party002,2,👩‍💼,"Activista ambiental y ex-alcaldesa",true

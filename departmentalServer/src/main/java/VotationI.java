@@ -3,6 +3,7 @@
 // CON DepartmentalReliableMessaging para comunicación confiable
 //
 
+import Central.CitizenNotRegisteredException;
 import Demo.*;
 import Central.*;
 import java.time.LocalDateTime;
@@ -86,7 +87,7 @@ public class VotationI implements Votation
     }
 
     @Override
-    public String sendVote(String citizenId, String candidateId, com.zeroc.Ice.Current current) throws AlreadyVotedException {
+    public String sendVote(String citizenId, String candidateId, com.zeroc.Ice.Current current) throws AlreadyVotedException, Demo.CitizenNotRegisteredException {
         String timestamp = LocalDateTime.now().format(timeFormatter);
 
         if (citizenId == null || citizenId.trim().isEmpty() || candidateId == null || candidateId.trim().isEmpty()) {
@@ -151,13 +152,14 @@ public class VotationI implements Votation
             throw ex;
 
         } catch (CitizenNotRegisteredException citizenEx) {
-            // NUEVA EXCEPCIÓN: Ciudadano no registrado
             System.out.println("[" + timestamp + "] [" + departmentalServerName + "] ❌ Ciudadano NO registrado: " + citizenEx.citizenId);
             System.out.println("[" + timestamp + "] [" + departmentalServerName + "] Mensaje: " + citizenEx.message);
 
-            // Para el DepartmentalServer, esto se trata como un error especial
-            // Se puede lanzar una excepción personalizada o manejar como error del sistema
-            throw new RuntimeException("CITIZEN_NOT_REGISTERED:" + citizenEx.message);
+            // CREAR Y LANZAR LA EXCEPCIÓN CORRECTA DEL MÓDULO PROXY
+            Demo.CitizenNotRegisteredException ex = new Demo.CitizenNotRegisteredException();
+            ex.citizenId = citizenEx.citizenId;
+            ex.message = citizenEx.message;
+            throw ex;
 
         } catch (CentralServerUnavailableException centralEx) {
             // ACTIVAR RELIABLE MESSAGING

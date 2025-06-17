@@ -4,6 +4,8 @@
 
 import Proxy.*;
 import Demo.*;
+import Proxy.CitizenNotRegisteredException;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -21,7 +23,7 @@ public class VotingProxyI implements VotingProxy {
 
     @Override
     public String submitVote(String citizenId, String candidateId, com.zeroc.Ice.Current current)
-            throws VotingSystemUnavailableException, InvalidVoteException {
+            throws VotingSystemUnavailableException, InvalidVoteException, CitizenNotRegisteredException {
 
         String timestamp = LocalDateTime.now().format(timeFormatter);
         String clientEndpoint = current.con != null ? current.con.toString() : "unknown";
@@ -44,6 +46,9 @@ public class VotingProxyI implements VotingProxy {
 
         try {
             long startTime = System.currentTimeMillis();
+            if (currentTarget == null) {
+                throw new VotingSystemUnavailableException("No hay servidores disponibles");
+            }
             String ackId = currentTarget.sendVote(citizenId.trim(), candidateId.trim());
             long latency = System.currentTimeMillis() - startTime;
 
@@ -65,8 +70,19 @@ public class VotingProxyI implements VotingProxy {
             String voteKey = citizenId + "|" + candidateId;
             messagingService.confirmVoteACK(voteKey, e.ackId, latency);
 
-            // Retornar el ACK existente, no lanzar excepción
-            return e.ackId;
+            // CAMBIAR ESTO: En lugar de retornar, lanzar excepción
+            InvalidVoteException duplicateEx = new InvalidVoteException("Ciudadano ya votó - ACK: " + e.ackId);
+            throw duplicateEx;
+
+        }  catch (Demo.CitizenNotRegisteredException e) {  // ← Cambiar de Proxy a Demo
+            timestamp = LocalDateTime.now().format(timeFormatter);
+            System.out.println("[" + timestamp + "] [VotingSite-Proxy] Ciudadano no registrado: " + e.citizenId);
+
+            // Convertir de Demo a Proxy para lanzar al VoteStationI
+            Proxy.CitizenNotRegisteredException proxyEx = new Proxy.CitizenNotRegisteredException();
+            proxyEx.citizenId = e.citizenId;
+            proxyEx.message = e.message;
+            throw proxyEx;
 
         } catch (com.zeroc.Ice.LocalException e) {
             timestamp = LocalDateTime.now().format(timeFormatter);

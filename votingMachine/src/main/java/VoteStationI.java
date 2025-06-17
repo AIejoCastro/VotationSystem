@@ -2,112 +2,83 @@ import VotingStation.*;
 import Proxy.*;
 import Central.*;
 import CandidateNotification.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class VoteStationI implements VotingStation.VoteStation {
-    private static final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-
-    // Referencias a componentes del sistema
     private final VotingProxyPrx votingProxy;
     private final CentralVotationPrx centralProxy;
     private final String stationId;
+    private final Map<Integer, String> candidateMapping = new HashMap<>();
 
-    // Cache local de candidatos y mapeo existentes...
-    private volatile List<CandidateData> currentCandidates = new ArrayList<CandidateData>();
+    // AGREGAR: Cache de candidatos
+    private volatile List<CandidateData> currentCandidates = new ArrayList<>();
     private volatile long lastUpdateTimestamp = 0;
     private final Object candidatesLock = new Object();
-    private final Map<Integer, String> candidateMapping = new HashMap<Integer, String>();
 
     public VoteStationI(VotingProxyPrx votingProxy, CentralVotationPrx centralProxy, String stationId) {
         this.votingProxy = votingProxy;
         this.centralProxy = centralProxy;
         this.stationId = stationId;
 
-        // Inicializar candidatos
-        initializeCandidates();
-
-        String timestamp = LocalDateTime.now().format(timeFormatter);
-        System.out.println("[" + timestamp + "] [VoteStation-" + stationId + "] Servicio ICE inicializado");
+        // Mapeo simple de candidatos por defecto
+        candidateMapping.put(1, "candidate001");
+        candidateMapping.put(2, "candidate002");
+        candidateMapping.put(3, "candidate003");
+        candidateMapping.put(4, "candidate004");
+        candidateMapping.put(5, "blank");
     }
 
     @Override
     public int vote(String document, int candidateId, com.zeroc.Ice.Current current) {
-        String timestamp = LocalDateTime.now().format(timeFormatter);
-        String clientEndpoint = current.con != null ? current.con.toString() : "unknown";
-
-        System.out.println("[" + timestamp + "] [VoteStation-" + stationId + "] ICE vote() llamado");
-        System.out.println("[" + timestamp + "] [VoteStation-" + stationId + "] Cliente: " + clientEndpoint);
-        System.out.println("[" + timestamp + "] [VoteStation-" + stationId + "] Documento: " + document + ", CandidateId: " + candidateId);
-
         // Validaciones básicas
         if (document == null || document.trim().isEmpty()) {
-            System.out.println("[" + timestamp + "] [VoteStation-" + stationId + "] Error: Documento vacío");
             return 1; // Error: documento inválido
         }
 
-        if (candidateId < 1 || candidateId > 5) {
-            System.out.println("[" + timestamp + "] [VoteStation-" + stationId + "] Error: CandidateId inválido: " + candidateId);
-            return 3; // Error: candidateId fuera de rango
+        synchronized (candidatesLock) {
+            int maxCandidates = currentCandidates.isEmpty() ? 5 : currentCandidates.size();
+            if (candidateId < 1 || candidateId > maxCandidates) {
+                return 3; // Error: candidato inválido
+            }
         }
 
-        // Mapear candidateId numérico a string
-        String candidateString = mapCandidateId(candidateId);
+        // Mapear candidateId a string
+        String candidateString = candidateMapping.get(candidateId);
         if (candidateString == null) {
-            System.out.println("[" + timestamp + "] [VoteStation-" + stationId + "] Error: No se pudo mapear candidateId: " + candidateId);
             return 4; // Error: candidato no encontrado
         }
 
         try {
             // Procesar voto a través del sistema
             String ackId = votingProxy.submitVote(document.trim(), candidateString);
-
-            timestamp = LocalDateTime.now().format(timeFormatter);
-            System.out.println("[" + timestamp + "] [VoteStation-" + stationId + "] ✅ Voto exitoso - ACK: " + ackId);
-
             return 0; // Éxito
 
         } catch (VotingSystemUnavailableException e) {
-            timestamp = LocalDateTime.now().format(timeFormatter);
-            System.out.println("[" + timestamp + "] [VoteStation-" + stationId + "] ⚠️ Sistema no disponible: " + e.reason);
-
-            // El voto se guardó en reliable messaging, consideramos éxito
+            // Sistema no disponible pero voto guardado para procesamiento
             return 0; // Éxito (será procesado automáticamente)
 
         } catch (InvalidVoteException e) {
-            timestamp = LocalDateTime.now().format(timeFormatter);
-            System.out.println("[" + timestamp + "] [VoteStation-" + stationId + "] ❌ Voto inválido: " + e.reason);
-
-            // Verificar si es un duplicado
+            // Verificar si es duplicado
             if (e.reason != null && (e.reason.toLowerCase().contains("already voted") ||
                     e.reason.toLowerCase().contains("ya votó") ||
-                    e.reason.toLowerCase().contains("duplicado"))) {
+                    e.reason.toLowerCase().contains("duplicado") ||
+                    e.reason.contains("ACK:"))) {
                 return 2; // Ciudadano ya votó
             }
-
             return 5; // Error: voto inválido
 
         } catch (Proxy.CitizenNotRegisteredException e) {
-            // SOLUCIÓN: Usar nombre completamente calificado Proxy.CitizenNotRegisteredException
-            timestamp = LocalDateTime.now().format(timeFormatter);
-            System.out.println("[" + timestamp + "] [VoteStation-" + stationId + "] ❌ Ciudadano no registrado: " + e.citizenId);
-            System.out.println("[" + timestamp + "] [VoteStation-" + stationId + "] Mensaje: " + e.message);
-
-            return 3; // CÓDIGO: Ciudadano no registrado en base de datos
+            return 3; // Ciudadano no registrado en base de datos
 
         } catch (Exception e) {
-            timestamp = LocalDateTime.now().format(timeFormatter);
-            System.out.println("[" + timestamp + "] [VoteStation-" + stationId + "] ❌ Error inesperado: " + e.getMessage());
-
-            // Verificar si es error de duplicado por algún mensaje específico
+            // Verificar mensajes de error para casos especiales
             String errorMsg = e.getMessage();
             if (errorMsg != null) {
-                if (errorMsg.contains("already voted") || errorMsg.contains("ya votó") || errorMsg.contains("duplicado")) {
+                if (errorMsg.contains("already voted") || errorMsg.contains("ya votó") ||
+                        errorMsg.contains("duplicado")) {
                     return 2; // Ciudadano ya votó
                 }
 
-                // Verificar si es error de ciudadano no registrado
                 if (errorMsg.contains("CITIZEN_NOT_REGISTERED") ||
                         errorMsg.contains("no está registrado") ||
                         errorMsg.contains("not registered")) {
@@ -119,25 +90,12 @@ public class VoteStationI implements VotingStation.VoteStation {
         }
     }
 
-    // Resto de métodos existentes sin cambios...
-
     @Override
     public String getStationStatus(com.zeroc.Ice.Current current) {
         try {
-            String systemStatus = votingProxy.getSystemStatus();
-            int pendingVotes = votingProxy.getPendingVotesCount();
-
-            synchronized (candidatesLock) {
-                return String.format("VoteStation-%s: %s | Candidatos: %d | Pendientes: %d | Última actualización: %s",
-                        stationId,
-                        systemStatus,
-                        currentCandidates.size(),
-                        pendingVotes,
-                        lastUpdateTimestamp > 0 ? new Date(lastUpdateTimestamp).toString() : "N/A"
-                );
-            }
+            return votingProxy.getSystemStatus();
         } catch (Exception e) {
-            return "VoteStation-" + stationId + ": ERROR - " + e.getMessage();
+            return "ERROR: " + e.getMessage();
         }
     }
 
@@ -145,29 +103,34 @@ public class VoteStationI implements VotingStation.VoteStation {
     public String getCandidateList(com.zeroc.Ice.Current current) {
         synchronized (candidatesLock) {
             if (currentCandidates.isEmpty()) {
-                return "No hay candidatos disponibles";
+                return getDefaultCandidateList();
             }
 
             StringBuilder sb = new StringBuilder();
-            sb.append("CANDIDATOS DISPONIBLES:\n");
-            sb.append("======================\n");
+            sb.append("CANDIDATOS:\n");
 
-            int position = 1;
+            int pos = 1;
             for (CandidateData candidate : currentCandidates) {
                 if (!"blank".equals(candidate.candidateId)) {
-                    sb.append(String.format("%d) %s - %s\n",
-                            position,
-                            candidate.fullName,
-                            candidate.partyName));
-                    position++;
+                    sb.append(pos).append(") ").append(candidate.fullName)
+                            .append(" - ").append(candidate.partyName).append("\n");
+                    pos++;
                 }
             }
-
-            sb.append(String.format("%d) VOTO EN BLANCO\n", position));
-            sb.append("======================");
-
+            sb.append(pos).append(") VOTO EN BLANCO");
             return sb.toString();
         }
+    }
+
+    private String getDefaultCandidateList() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("CANDIDATOS:\n");
+        sb.append("1) Juan Pérez - Partido Azul\n");
+        sb.append("2) María García - Partido Verde\n");
+        sb.append("3) Carlos López - Partido Rojo\n");
+        sb.append("4) Ana Martínez - Partido Amarillo\n");
+        sb.append("5) VOTO EN BLANCO");
+        return sb.toString();
     }
 
     @Override
@@ -177,100 +140,26 @@ public class VoteStationI implements VotingStation.VoteStation {
         }
 
         try {
-            // Verificar a través del sistema central si es posible
             if (centralProxy != null) {
                 return centralProxy.hasVoted(document.trim());
-            } else {
-                // Fallback: no podemos verificar sin acceso al central
-                return false;
             }
+            return false;
         } catch (Exception e) {
-            System.err.println("[VoteStation-" + stationId + "] Error verificando voto: " + e.getMessage());
             return false;
         }
     }
 
     @Override
     public void shutdown(com.zeroc.Ice.Current current) {
-        String timestamp = LocalDateTime.now().format(timeFormatter);
-        System.out.println("[" + timestamp + "] [VoteStation-" + stationId + "] Shutdown solicitado vía ICE");
-
-        // El shutdown será manejado por el main del VotingMachine
         current.adapter.getCommunicator().shutdown();
     }
 
-    /**
-     * Inicializar candidatos y mapeo
-     */
-    private void initializeCandidates() {
-        try {
-            if (centralProxy != null) {
-                CandidateListResponse response = centralProxy.getCurrentCandidates();
-
-                synchronized (candidatesLock) {
-                    currentCandidates = Arrays.asList(response.candidates);
-                    lastUpdateTimestamp = response.updateTimestamp;
-
-                    // Construir mapeo de posición a candidateId
-                    candidateMapping.clear();
-                    int position = 1;
-
-                    for (CandidateData candidate : currentCandidates) {
-                        if (!"blank".equals(candidate.candidateId)) {
-                            candidateMapping.put(position, candidate.candidateId);
-                            position++;
-                        }
-                    }
-
-                    // Voto en blanco siempre en la última posición
-                    candidateMapping.put(position, "blank");
-                }
-
-                System.out.println("[VoteStation-" + stationId + "] Candidatos cargados: " + currentCandidates.size());
-                System.out.println("[VoteStation-" + stationId + "] Mapeo de candidatos:");
-                candidateMapping.forEach((pos, id) ->
-                        System.out.println("  " + pos + " -> " + id));
-
-            } else {
-                // Candidatos por defecto si no hay conexión al central
-                initializeDefaultCandidates();
-            }
-        } catch (Exception e) {
-            System.err.println("[VoteStation-" + stationId + "] Error cargando candidatos: " + e.getMessage());
-            initializeDefaultCandidates();
-        }
-    }
-
-    /**
-     * Candidatos por defecto para fallback
-     */
-    private void initializeDefaultCandidates() {
-        candidateMapping.clear();
-        candidateMapping.put(1, "candidate001");
-        candidateMapping.put(2, "candidate002");
-        candidateMapping.put(3, "candidate003");
-        candidateMapping.put(4, "candidate004");
-        candidateMapping.put(5, "blank");
-
-        System.out.println("[VoteStation-" + stationId + "] Usando candidatos por defecto");
-    }
-
-    /**
-     * Mapear candidateId numérico a string
-     */
-    private String mapCandidateId(int candidateId) {
-        return candidateMapping.get(candidateId);
-    }
-
-    /**
-     * Actualizar candidatos (llamado desde VotingMachine cuando recibe notificaciones)
-     */
     public void updateCandidates(List<CandidateData> newCandidates, long updateTimestamp) {
         synchronized (candidatesLock) {
-            currentCandidates = new ArrayList<CandidateData>(newCandidates);
+            currentCandidates = new ArrayList<>(newCandidates);
             lastUpdateTimestamp = updateTimestamp;
 
-            // Reconstruir mapeo
+            // Reconstruir mapeo dinámico
             candidateMapping.clear();
             int position = 1;
 
