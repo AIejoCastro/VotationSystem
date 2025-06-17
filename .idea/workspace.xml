@@ -6,25 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="9ee6b384-72c4-4b60-a4b5-1564fc65236d" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Votation.ice" beforeDir="false" afterPath="$PROJECT_DIR$/Votation.ice" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-1/config/config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-10/config/config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-11/config/config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-12/config/config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-2/config/config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-3/config/config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-4/config/config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-5/config/config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-6/config/config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-7/config/config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-8/config/config" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/db/node1/servers/ProdServer-node1-9/config/config" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/db/central-citizen-acks.csv" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/central-citizen-acks.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config/db/central-votes.csv" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/central-votes.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/config/db/registry/data.mdb" beforeDir="false" afterPath="$PROJECT_DIR$/config/db/registry/data.mdb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/departmentalServer/src/main/java/VotationI.java" beforeDir="false" afterPath="$PROJECT_DIR$/departmentalServer/src/main/java/VotationI.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reliableMessaging/src/main/java/VoteRetryWorker.java" beforeDir="false" afterPath="$PROJECT_DIR$/reliableMessaging/src/main/java/VoteRetryWorker.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/votingMachine/src/main/java/VoteStationI.java" beforeDir="false" afterPath="$PROJECT_DIR$/votingMachine/src/main/java/VoteStationI.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/votingMachine/src/main/java/VotingMachine.java" beforeDir="false" afterPath="$PROJECT_DIR$/votingMachine/src/main/java/VotingMachine.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/votingSite/src/main/java/VotingProxyI.java" beforeDir="false" afterPath="$PROJECT_DIR$/votingSite/src/main/java/VotingProxyI.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -86,7 +70,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1750111020726</updated>
-      <workItem from="1750111022271" duration="8131000" />
+      <workItem from="1750111022271" duration="9244000" />
     </task>
     <servers />
   </component>
