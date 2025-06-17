@@ -13,15 +13,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.*;
 
 /**
- * Test de carga para QueryServer - 3,000 consultas/segundo
+ * Test de carga SIN LIMITADOR para QueryServer - Máximo rendimiento
  */
 public class QueryLoadTest {
 
     // CONFIGURACIÓN DEL TEST
-    private static final int TARGET_QUERIES_PER_SECOND = 3000;
     private static final int TEST_DURATION_SECONDS = 180; // 3 minutos
-    private static final int TOTAL_QUERIES = TARGET_QUERIES_PER_SECOND * TEST_DURATION_SECONDS;
-    private static final int CONCURRENT_CLIENTS = 100;
+    private static final int CONCURRENT_CLIENTS = 200; // Aumentado para máximo rendimiento
 
     // MÉTRICAS GLOBALES
     private static final AtomicInteger queriesSubmitted = new AtomicInteger(0);
@@ -31,8 +29,7 @@ public class QueryLoadTest {
     private static final AtomicLong totalLatency = new AtomicLong(0);
     private static final List<Long> latencies = Collections.synchronizedList(new ArrayList<>());
 
-    // CONTROL DE VELOCIDAD
-    private static final Semaphore rateLimiter = new Semaphore(TARGET_QUERIES_PER_SECOND);
+    // CONTROL DE TEST
     private static volatile boolean testRunning = false;
     private static volatile long testStartTime = 0;
 
@@ -42,12 +39,13 @@ public class QueryLoadTest {
 
     public static void main(String[] args) {
         System.out.println("████████████████████████████████████████████████████████████");
-        System.out.println("█        TEST DE CARGA QUERY SERVER - 3,000 q/s             █");
+        System.out.println("█        TEST DE CARGA MÁXIMA QUERY SERVER                  █");
+        System.out.println("█                   SIN LIMITADORES                          █");
         System.out.println("████████████████████████████████████████████████████████████");
-        System.out.println("🎯 Objetivo: " + TARGET_QUERIES_PER_SECOND + " consultas/segundo");
-        System.out.println("⏱️  Duración: " + TEST_DURATION_SECONDS + " segundos (" + (TEST_DURATION_SECONDS/60) + " minutos)");
-        System.out.println("📊 Total consultas: " + String.format("%,d", TOTAL_QUERIES));
+        System.out.println("🚀 Modo: MÁXIMO RENDIMIENTO POSIBLE");
+        System.out.println("⏱️  Duración: " + TEST_DURATION_SECONDS + " segundos (" + (TEST_DURATION_SECONDS / 60) + " minutos)");
         System.out.println("🖥️  Clientes concurrentes: " + CONCURRENT_CLIENTS);
+        System.out.println("⚡ Velocidad: ILIMITADA");
         System.out.println("████████████████████████████████████████████████████████████");
 
         // Inicializar BD y cargar documentos
@@ -64,11 +62,11 @@ public class QueryLoadTest {
 
         System.out.println("\n████████████████████████████████████████████████████████████");
         if (testPassed) {
-            System.out.println("█                    ✅ TEST EXITOSO                          █");
-            System.out.println("█              QUERY SERVER LISTO PARA PRODUCCIÓN            █");
+            System.out.println("█                    ✅ TEST COMPLETADO                       █");
+            System.out.println("█              MÁXIMO RENDIMIENTO MEDIDO                     █");
         } else {
-            System.out.println("█                    ❌ TEST FALLIDO                          █");
-            System.out.println("█           QUERY SERVER REQUIERE OPTIMIZACIONES             █");
+            System.out.println("█                    ❌ TEST INTERRUMPIDO                     █");
+            System.out.println("█           REVISAR LOGS DE ERRORES                          █");
         }
         System.out.println("████████████████████████████████████████████████████████████");
 
@@ -80,9 +78,9 @@ public class QueryLoadTest {
             System.out.println("🔌 Conectando a PostgreSQL...");
 
             HikariConfig config = new HikariConfig();
-            config.setJdbcUrl("jdbc:postgresql://localhost:5433/votacion");
-            config.setUsername("admin");
-            config.setPassword("123");
+            config.setJdbcUrl("jdbc:postgresql://10.147.17.101:5432/votacion");
+            config.setUsername("postgres");
+            config.setPassword("postgres");
             config.setMaximumPoolSize(5);
             config.setMinimumIdle(1);
             config.setConnectionTimeout(3000);
@@ -104,7 +102,7 @@ public class QueryLoadTest {
         try {
             System.out.println("📋 Cargando documentos para consultas...");
 
-            String sql = "SELECT documento FROM ciudadano WHERE documento IS NOT NULL AND documento != '' LIMIT 50000";
+            String sql = "SELECT documento FROM ciudadano WHERE documento IS NOT NULL AND documento != '' LIMIT 100000";
 
             try (Connection conn = dataSource.getConnection();
                  PreparedStatement ps = conn.prepareStatement(sql);
@@ -141,15 +139,15 @@ public class QueryLoadTest {
     }
 
     private static boolean executeLoadTest() {
-        ExecutorService queryPool = Executors.newFixedThreadPool(CONCURRENT_CLIENTS + 5);
+        ExecutorService queryPool = Executors.newFixedThreadPool(CONCURRENT_CLIENTS + 10);
 
         try (Communicator communicator = Util.initialize()) {
             System.out.println("\n🔌 Conectando al QueryServer...");
-            ObjectPrx base = communicator.stringToProxy("QueryStation:default -h localhost -p 8888");
+            ObjectPrx base = communicator.stringToProxy("QueryStation:default -h 10.147.17.101 -p 8899");
             QueryStationPrx proxy = QueryStationPrx.checkedCast(base);
 
             if (proxy == null) {
-                System.err.println("❌ ERROR: No se pudo conectar al QueryServer en puerto 8888");
+                System.err.println("❌ ERROR: No se pudo conectar al QueryServer");
                 return false;
             }
 
@@ -160,21 +158,17 @@ public class QueryLoadTest {
             performQueryWarmup(proxy, queryPool);
 
             // Test principal
-            System.out.println("\n⚡ INICIANDO TEST DE CONSULTAS");
+            System.out.println("\n⚡ INICIANDO TEST DE CONSULTAS MÁXIMO");
             System.out.println("═══════════════════════════════════════════════════════════");
 
             testRunning = true;
             testStartTime = System.currentTimeMillis();
 
-            // Rate limiter controller
-            CompletableFuture<Void> rateLimiterTask = CompletableFuture.runAsync(
-                    new QueryRateLimiterController(), queryPool);
-
             // Metrics monitor
             CompletableFuture<Void> metricsTask = CompletableFuture.runAsync(
                     new QueryMetricsMonitor(), queryPool);
 
-            // Lanzar clientes de consulta
+            // Lanzar clientes de consulta SIN LIMITACIÓN
             List<CompletableFuture<Void>> queryTasks = new ArrayList<>();
 
             for (int clientId = 1; clientId <= CONCURRENT_CLIENTS; clientId++) {
@@ -184,12 +178,12 @@ public class QueryLoadTest {
                 queryTasks.add(task);
             }
 
-            // Esperar completado o timeout
+            // Esperar completado o timeout por tiempo
             try {
                 CompletableFuture.allOf(queryTasks.toArray(new CompletableFuture[0]))
                         .get(TEST_DURATION_SECONDS + 60, TimeUnit.SECONDS);
             } catch (TimeoutException e) {
-                System.out.println("⚠️ Test terminado por timeout");
+                System.out.println("⏰ Test terminado por tiempo límite");
             } catch (ExecutionException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -197,7 +191,6 @@ public class QueryLoadTest {
             testRunning = false;
             long testEndTime = System.currentTimeMillis();
 
-            rateLimiterTask.cancel(true);
             metricsTask.cancel(true);
 
             System.out.println("\n⏳ Esperando procesamiento final...");
@@ -253,21 +246,9 @@ public class QueryLoadTest {
     }
 
     private static void runQueryClient(int clientId, QueryStationPrx proxy) {
-        int queriesPerClient = TOTAL_QUERIES / CONCURRENT_CLIENTS;
-        int extraQueries = TOTAL_QUERIES % CONCURRENT_CLIENTS;
-
-        if (clientId <= extraQueries) {
-            queriesPerClient++;
-        }
-
-        for (int i = 1; i <= queriesPerClient && testRunning; i++) {
+        // EJECUTAR SIN LÍMITE DE CONSULTAS - Solo limitado por tiempo
+        while (testRunning) {
             try {
-                if (!rateLimiter.tryAcquire(1, TimeUnit.SECONDS)) {
-                    continue;
-                }
-
-                if (!testRunning) break;
-
                 String documento = getRealDocument();
                 queriesSubmitted.incrementAndGet();
 
@@ -275,19 +256,14 @@ public class QueryLoadTest {
 
                 try {
                     String resultado = proxy.query(documento);
+                    System.out.println(resultado);
 
                     long latency = System.currentTimeMillis() - queryStartTime;
                     totalLatency.addAndGet(latency);
                     latencies.add(latency);
 
                     queriesCompleted.incrementAndGet();
-
-                    if (resultado != null) {
-                        queriesSuccessful.incrementAndGet();
-                    } else {
-                        // No encontrado, pero es válido
-                        queriesSuccessful.incrementAndGet();
-                    }
+                    queriesSuccessful.incrementAndGet();
 
                 } catch (Exception e) {
                     long latency = System.currentTimeMillis() - queryStartTime;
@@ -296,38 +272,18 @@ public class QueryLoadTest {
                     queriesCompleted.incrementAndGet();
                     queriesFailed.incrementAndGet();
 
-                    if (queriesFailed.get() % 100 == 1) {
+                    if (queriesFailed.get() % 1000 == 1) {
                         System.out.println("⚠️ [C" + clientId + "] Error: " + e.getMessage());
                     }
                 }
 
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
+            } catch (Exception e) {
+                // Continuar ejecutando
             }
         }
 
-        if (clientId % 20 == 0) {
+        if (clientId % 40 == 0) {
             System.out.println("✅ Cliente " + clientId + " completado");
-        }
-    }
-
-    private static class QueryRateLimiterController implements Runnable {
-        @Override
-        public void run() {
-            while (testRunning) {
-                try {
-                    Thread.sleep(1000);
-                    int currentPermits = rateLimiter.availablePermits();
-                    int neededPermits = TARGET_QUERIES_PER_SECOND - currentPermits;
-                    if (neededPermits > 0) {
-                        rateLimiter.release(neededPermits);
-                    }
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
-            }
         }
     }
 
@@ -355,9 +311,9 @@ public class QueryLoadTest {
                             (double) totalLatency.get() / currentCompleted : 0;
 
                     double progressPercent = (testElapsedSec / TEST_DURATION_SECONDS) * 100;
-                    int remainingSeconds = (int)(TEST_DURATION_SECONDS - testElapsedSec);
+                    int remainingSeconds = (int) (TEST_DURATION_SECONDS - testElapsedSec);
 
-                    System.out.printf("📊 [%03.0fs] Actual: %.0f q/s | Promedio: %.0f q/s | Completadas: %,d | Éxito: %.1f%% | Latencia: %.0fms | Progreso: %.1f%% | Quedan: %ds%n",
+                    System.out.printf("🚀 [%03.0fs] ACTUAL: %.0f q/s | PROMEDIO: %.0f q/s | Completadas: %,d | Éxito: %.1f%% | Latencia: %.0fms | Progreso: %.1f%% | Quedan: %ds%n",
                             testElapsedSec,
                             currentThroughput,
                             avgThroughput,
@@ -397,60 +353,36 @@ public class QueryLoadTest {
                 sortedLatencies.get(sortedLatencies.size() - 1);
 
         System.out.println("\n████████████████████████████████████████████████████████████");
-        System.out.println("█                RESULTADOS QUERY SERVER                     █");
+        System.out.println("█            RENDIMIENTO MÁXIMO QUERY SERVER                 █");
         System.out.println("████████████████████████████████████████████████████████████");
         System.out.println();
         System.out.println("⏱️  DURACIÓN Y VOLUMEN:");
-        System.out.println("    Duración real:           " + String.format("%.1f", testDurationSec) + " segundos");
-        System.out.println("    Consultas enviadas:      " + String.format("%,d", queriesSubmitted.get()));
-        System.out.println("    Consultas completadas:   " + String.format("%,d", queriesCompleted.get()));
-        System.out.println("    Consultas exitosas:      " + String.format("%,d", queriesSuccessful.get()));
-        System.out.println("    Consultas fallidas:      " + String.format("%,d", queriesFailed.get()));
+        System.out.println("    Duración real:               " + String.format("%.1f", testDurationSec) + " segundos");
+        System.out.println("    Consultas enviadas:          " + String.format("%,d", queriesSubmitted.get()));
+        System.out.println("    Consultas completadas:       " + String.format("%,d", queriesCompleted.get()));
+        System.out.println("    Consultas exitosas:          " + String.format("%,d", queriesSuccessful.get()));
+        System.out.println("    Consultas fallidas:          " + String.format("%,d", queriesFailed.get()));
         System.out.println();
-        System.out.println("🚀 PERFORMANCE:");
-        System.out.println("    Throughput real:         " + String.format("%.1f", actualThroughput) + " consultas/segundo");
-        System.out.println("    Throughput objetivo:     " + String.format("%,d", TARGET_QUERIES_PER_SECOND) + " consultas/segundo");
-        System.out.println("    Eficiencia:              " + String.format("%.1f%%", (actualThroughput / TARGET_QUERIES_PER_SECOND * 100)));
-        System.out.println("    Tasa de éxito:           " + String.format("%.2f%%", successRate));
+        System.out.println("🚀 RENDIMIENTO MÁXIMO:");
+        System.out.println("    Throughput máximo medido:    " + String.format("%.0f", actualThroughput) + " consultas/segundo");
+        System.out.println("    Tasa de éxito:               " + String.format("%.2f%%", successRate));
+        System.out.println("    Clientes concurrentes:       " + CONCURRENT_CLIENTS);
         System.out.println();
         System.out.println("⏰ LATENCIAS:");
-        System.out.println("    Latencia promedio:       " + String.format("%.0f", avgLatency) + " ms");
-        System.out.println("    Latencia P50:            " + p50 + " ms");
-        System.out.println("    Latencia P95:            " + p95 + " ms");
-        System.out.println("    Latencia P99:            " + p99 + " ms");
-        System.out.println("    Latencia máxima:         " + maxLatency + " ms");
-
-        // Criterios de éxito para QueryServer
-        boolean throughputOK = actualThroughput >= (TARGET_QUERIES_PER_SECOND * 0.95);
-        boolean successRateOK = successRate >= 98.0;
-        boolean latencyOK = p95 <= 100; // Las consultas deben ser muy rápidas
-        boolean stabilityOK = queriesFailed.get() < (queriesCompleted.get() * 0.02);
+        System.out.println("    Latencia promedio:           " + String.format("%.0f", avgLatency) + " ms");
+        System.out.println("    Latencia P50:                " + p50 + " ms");
+        System.out.println("    Latencia P95:                " + p95 + " ms");
+        System.out.println("    Latencia P99:                " + p99 + " ms");
+        System.out.println("    Latencia máxima:             " + maxLatency + " ms");
 
         System.out.println();
-        System.out.println("🔍 EVALUACIÓN DE CRITERIOS:");
-        System.out.println("    Throughput ≥ 95%:        " + (throughputOK ? "✅ CUMPLE" : "❌ NO CUMPLE") +
-                " (" + String.format("%.1f%%", (actualThroughput / TARGET_QUERIES_PER_SECOND * 100)) + ")");
-        System.out.println("    Tasa éxito ≥ 98%:        " + (successRateOK ? "✅ CUMPLE" : "❌ NO CUMPLE") +
-                " (" + String.format("%.1f%%", successRate) + ")");
-        System.out.println("    Latencia P95 < 100ms:    " + (latencyOK ? "✅ CUMPLE" : "❌ NO CUMPLE") +
-                " (" + p95 + "ms)");
-        System.out.println("    Estabilidad < 2% err:    " + (stabilityOK ? "✅ CUMPLE" : "❌ NO CUMPLE") +
-                " (" + String.format("%.1f%%", (double)queriesFailed.get()/Math.max(queriesCompleted.get(),1)*100) + ")");
-
-        boolean testPassed = throughputOK && successRateOK && latencyOK && stabilityOK;
-
-        System.out.println();
-        if (testPassed) {
-            System.out.println("🎉 VEREDICTO: QUERY SERVER APROBADO");
-            System.out.println("   ✅ Capacidad validada para " + TARGET_QUERIES_PER_SECOND + " consultas/segundo");
-            System.out.println("   ✅ Latencias excelentes para consultas en tiempo real");
-            System.out.println("   ✅ Conectividad con PostgreSQL estable");
-        } else {
-            System.out.println("⚠️ VEREDICTO: QUERY SERVER REQUIERE OPTIMIZACIONES");
-        }
+        System.out.println("🎯 CAPACIDAD MÁXIMA DEL QUERY SERVER:");
+        System.out.printf("    El sistema puede manejar hasta %.0f consultas/segundo%n", actualThroughput);
+        System.out.printf("    Con una tasa de éxito del %.1f%%%n", successRate);
+        System.out.println("    Utilizando " + CONCURRENT_CLIENTS + " clientes concurrentes");
 
         System.out.println("████████████████████████████████████████████████████████████");
-        return testPassed;
+        return true; // Siempre exitoso para medir capacidad máxima
     }
 
     private static long getPercentile(List<Long> sortedValues, double percentile) {

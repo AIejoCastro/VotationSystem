@@ -5,11 +5,9 @@ plugins {
 }
 
 application {
-    mainClass = 'Main'
+    mainClass = 'MainEntry' // 👈 Cambia esto si tu clase main se llama distinto
 }
+
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
-}
-run {
-    standardInput = System.in
 }
