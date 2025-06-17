@@ -1,11 +1,19 @@
 services:
   postgres:
     image: postgres:16
-    container_name: postgres_icegrid
+    container_name: postgres_grpmcc_voting
     restart: always
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: 123
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: votacion
     ports:
-      - "5433:5432"
+      - "10.147.17.101:5433:5432"
+    volumes:
+      - /opt/swarch/grpmcc/central/config/db/postgres:/var/lib/postgresql/data
+    networks:
+      - voting_network_grpmcc
+
+networks:
+  voting_network_grpmcc:
+    driver: bridge

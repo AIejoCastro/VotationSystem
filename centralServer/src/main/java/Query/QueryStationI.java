@@ -10,9 +10,9 @@ public class QueryStationI implements QueryStation {
 
     static {
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:postgresql://localhost:5433/votacion");
-        config.setUsername("admin");
-        config.setPassword("123");
+        config.setJdbcUrl("jdbc:postgresql://localhost:5432/votacion");
+        config.setUsername("postgres");
+        config.setPassword("postgres");
         config.setMaximumPoolSize(10);
         config.setMinimumIdle(2);
         config.setConnectionTimeout(3000);

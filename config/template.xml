@@ -1,38 +1,33 @@
-<!-- Template optimizado para 1,777 votos/segundo con arranque confiable -->
 <icegrid>
-    <application name="ProductionVoting">
+    <application name="ProductionVoting-grpmcc">
 
-        <!-- Template optimizado pero estable -->
-        <server-template id="ProductionServer">
+        <server-template id="DepartmentalServer-grpmcc">
             <parameter name="index"/>
-            <parameter name="nodeId" default="node1"/>
+            <parameter name="nodeId" default="node1-grpmcc"/>
 
-            <server id="ProdServer-${nodeId}-${index}"
+            <server id="DeptServer-grpmcc-${nodeId}-${index}"
                     exe="java"
                     activation="always"
                     activation-timeout="180"
-                    deactivation-timeout="60">
+                    deactivation-timeout="60"
+                    pwd="/opt/swarch/grpmcc/node1">
 
-                <!-- JVM optimizado pero conservador -->
                 <option>-server</option>
                 <option>-Xms256m</option>
                 <option>-Xmx1024m</option>
                 <option>-XX:+UseG1GC</option>
                 <option>-XX:MaxGCPauseMillis=200</option>
 
-                <!-- Thread pools principales para alta carga -->
                 <option>-DIce.ThreadPool.Server.Size=30</option>
                 <option>-DIce.ThreadPool.Server.SizeMax=150</option>
                 <option>-DIce.ThreadPool.Server.SizeWarn=120</option>
                 <option>-DIce.ThreadPool.Client.Size=10</option>
                 <option>-DIce.ThreadPool.Client.SizeMax=50</option>
 
-                <!-- Configuración de red optimizada -->
                 <option>-DIce.MessageSizeMax=8388608</option>
                 <option>-DIce.ACM.Heartbeat=3</option>
                 <option>-DIce.Override.Timeout=15000</option>
 
-                <!-- Logging mínimo para performance -->
                 <option>-DIce.Trace.ThreadPool=0</option>
                 <option>-DIce.Trace.Network=0</option>
                 <option>-DIce.Warn.Connections=0</option>
@@ -40,33 +35,33 @@
                 <option>-jar</option>
                 <option>departmentalServer/build/libs/departmentalServer.jar</option>
 
-                <adapter name="Votation" endpoints="tcp -h localhost">
-                    <object identity="prod-${nodeId}-${index}"
+                <adapter name="Votation" endpoints="tcp -h 10.147.17.120">
+                    <object identity="dept-grpmcc-${nodeId}-${index}"
                             type="::Demo::Votation"
                             property="Identity"/>
                 </adapter>
 
                 <properties>
-                    <property name="Identity" value="prod-${nodeId}-${index}"/>
-                    <property name="Ice.ProgramName" value="ProdServer-${nodeId}-${index}"/>
+                    <property name="Identity" value="dept-grpmcc-${nodeId}-${index}"/>
+                    <property name="Ice.ProgramName" value="DeptServer-grpmcc-${nodeId}-${index}"/>
                 </properties>
             </server>
         </server-template>
 
-        <!-- 12 servidores distribuidos para manejar 1,777 v/s -->
-        <node name="node1">
-            <server-instance template="ProductionServer" index="1" nodeId="node1"/>
-            <server-instance template="ProductionServer" index="2" nodeId="node1"/>
-            <server-instance template="ProductionServer" index="3" nodeId="node1"/>
-            <server-instance template="ProductionServer" index="4" nodeId="node1"/>
-            <server-instance template="ProductionServer" index="5" nodeId="node1"/>
-            <server-instance template="ProductionServer" index="6" nodeId="node1"/>
-            <server-instance template="ProductionServer" index="7" nodeId="node1"/>
-            <server-instance template="ProductionServer" index="8" nodeId="node1"/>
-            <server-instance template="ProductionServer" index="9" nodeId="node1"/>
-            <server-instance template="ProductionServer" index="10" nodeId="node1"/>
-            <server-instance template="ProductionServer" index="11" nodeId="node1"/>
-            <server-instance template="ProductionServer" index="12" nodeId="node1"/>
+        <node name="node1-grpmcc">
+            <server-instance template="DepartmentalServer-grpmcc" index="1" nodeId="node1-grpmcc"/>
+            <server-instance template="DepartmentalServer-grpmcc" index="2" nodeId="node1-grpmcc"/>
+            <server-instance template="DepartmentalServer-grpmcc" index="3" nodeId="node1-grpmcc"/>
+            <server-instance template="DepartmentalServer-grpmcc" index="4" nodeId="node1-grpmcc"/>
+            <server-instance template="DepartmentalServer-grpmcc" index="5" nodeId="node1-grpmcc"/>
+            <server-instance template="DepartmentalServer-grpmcc" index="6" nodeId="node1-grpmcc"/>
+            <server-instance template="DepartmentalServer-grpmcc" index="7" nodeId="node1-grpmcc"/>
+            <server-instance template="DepartmentalServer-grpmcc" index="8" nodeId="node1-grpmcc"/>
+            <server-instance template="DepartmentalServer-grpmcc" index="9" nodeId="node1-grpmcc"/>
+            <server-instance template="DepartmentalServer-grpmcc" index="10" nodeId="node1-grpmcc"/>
+            <server-instance template="DepartmentalServer-grpmcc" index="11" nodeId="node1-grpmcc"/>
+            <server-instance template="DepartmentalServer-grpmcc" index="12" nodeId="node1-grpmcc"/>
+
         </node>
 
     </application>

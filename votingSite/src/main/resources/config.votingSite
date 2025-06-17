@@ -1,12 +1,5 @@
-#
-# Configuración VotingSite optimizada para 1,777 votos/segundo
-# Con configuración estable que funciona
-#
+Ice.Default.Locator=DemoIceGrid-grpmcc/Locator:default -h 10.147.17.101 -p 4071
 
-# ICEGRID CONNECTION estable
-Ice.Default.Locator=DemoIceGrid/Locator:default -h localhost -p 4061
-
-# THREAD POOLS OPTIMIZADOS pero conservadores
 Ice.ThreadPool.Server.Size=80
 Ice.ThreadPool.Server.SizeMax=400
 Ice.ThreadPool.Server.SizeWarn=320
@@ -16,44 +9,36 @@ Ice.ThreadPool.Client.Size=40
 Ice.ThreadPool.Client.SizeMax=200
 Ice.ThreadPool.Client.SizeWarn=160
 
-# ADAPTADOR optimizado
-VotingProxyAdapter.Endpoints=default -p 9999
+VotingProxyAdapter.Endpoints=default -h 10.147.17.102 -p 9911
 VotingProxyAdapter.ThreadPool.Size=60
 VotingProxyAdapter.ThreadPool.SizeMax=300
 VotingProxyAdapter.ThreadPool.SizeWarn=240
 
-# NETWORK OPTIMIZATIONS funcionales
 Ice.ACM.Heartbeat=3
 Ice.ACM.Timeout=60
 Ice.Override.Timeout=20000
 Ice.RetryIntervals=0 100 200 500
 
-# MESSAGE SIZE para alto volumen
 Ice.MessageSizeMax=16777216
 Ice.UDP.RcvSize=262144
 Ice.UDP.SndSize=262144
 Ice.TCP.RcvSize=131072
 Ice.TCP.SndSize=131072
 
-# RELIABLE MESSAGING optimizado
 ReliableMessaging.RetryInterval=5000
-ReliableMessaging.OfflineQueuePath=config/db/pending-votes.csv
-ReliableMessaging.ACKFilePath=config/db/vote-acks.log
+ReliableMessaging.OfflineQueuePath=/opt/swarch/grpmcc/voting-site/config/db/pending-votes.csv
+ReliableMessaging.ACKFilePath=/opt/swarch/grpmcc/voting-site/config/db/vote-acks.log
 ReliableMessaging.VerboseLogging=0
 
-# JAVA PACKAGES
 Ice.Default.Package=com.zeroc.demos.IceGrid.simple
 
-# LOGGING mínimo para performance
 Ice.Trace.ThreadPool=0
 Ice.Trace.Network=0
 Ice.Trace.Protocol=0
 Ice.Warn.Connections=0
 
-# MONITORING
 Ice.PrintAdapterReady=1
 Ice.PrintProcessId=1
 
-# CONNECTION optimization
 Ice.Override.ConnectTimeout=10000
 Ice.Override.CloseTimeout=5000
