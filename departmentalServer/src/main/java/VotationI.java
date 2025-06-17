@@ -232,7 +232,7 @@ public class VotationI implements Votation
 
         try {
             // Conectar directamente al servidor central en puerto 8888
-            String centralServerEndpoint = "CentralVotation:default -h localhost -p 8888";
+            String centralServerEndpoint = "CentralVotation:default -h 10.147.17.101 -p 8899";
 
             com.zeroc.Ice.ObjectPrx baseProxy = communicator.stringToProxy(centralServerEndpoint);
             CentralVotationPrx proxy = CentralVotationPrx.checkedCast(baseProxy);

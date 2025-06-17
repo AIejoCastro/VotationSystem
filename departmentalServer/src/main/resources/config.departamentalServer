@@ -1,12 +1,5 @@
-#
-# Configuración para DepartmentalServer optimizada para alta carga
-# Cada servidor departamental debe manejar ~75-100 votos/segundo
-#
+Ice.Default.Locator=DemoIceGrid-grpmcc/Locator:default -h 10.147.17.101 -p 4071:default -h 10.147.17.101 -p 4072:default -h 10.147.17.101 -p 4073
 
-# ICEGRID connection
-Ice.Default.Locator=DemoIceGrid/Locator:default -h localhost -p 4061:default -h localhost -p 4062:default -h localhost -p 4063
-
-# THREAD POOLS específicos para servidor departamental
 Ice.ThreadPool.Server.Size=25
 Ice.ThreadPool.Server.SizeMax=150
 Ice.ThreadPool.Server.SizeWarn=120
@@ -15,46 +8,34 @@ Ice.ThreadPool.Server.ThreadIdleTime=60
 Ice.ThreadPool.Client.Size=10
 Ice.ThreadPool.Client.SizeMax=50
 
-# ADAPTADOR Votation con thread pool dedicado
 Votation.ThreadPool.Size=20
 Votation.ThreadPool.SizeMax=100
 Votation.ThreadPool.SizeWarn=80
 Votation.ThreadPool.ThreadIdleTime=60
 
-# NETWORK optimizations
 Ice.Connection.IdleTimeout=300
 Ice.ACM.Heartbeat=3
 Ice.Override.Timeout=10000
 Ice.RetryIntervals=-1
 
-# BUFFER SIZES para high throughput
 Ice.MessageSizeMax=16777216
 Ice.UDP.RcvSize=262144
 Ice.UDP.SndSize=262144
 Ice.TCP.RcvSize=131072
 Ice.TCP.SndSize=131072
 
-# PERFORMANCE optimizations
 Ice.CacheMessageBuffers=1
 Ice.GC.Interval=0
 
-# PACKAGE mapping
 Ice.Default.Package=com.zeroc.demos.IceGrid.simple
 
-# FILE I/O optimizations para ACKManager y VoteManager
-# Configuración de buffer para escritura de archivos
 java.io.tmpdir=/tmp
 java.nio.file.spi.FileSystemProvider=sun.nio.fs.UnixFileSystemProvider
 
-# LOGGING minimal para performance
 Ice.Trace.ThreadPool=0
 Ice.Trace.Network=0
 Ice.Trace.Protocol=0
 Ice.Warn.Connections=0
 
-# MONITORING básico
 Ice.MonitorConnections=1
 Ice.PrintAdapterReady=1
-
-# JVM TUNING específico (se aplicará via template.xml)
-# -Xms256m -Xmx1024m -XX:+UseG1GC -XX:MaxGCPauseMillis=200

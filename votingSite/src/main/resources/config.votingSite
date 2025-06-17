@@ -1,4 +1,4 @@
-Ice.Default.Locator=DemoIceGrid-grpmcc/Locator:default -h 10.147.17.101 -p 4071
+Ice.Default.Locator=DemoIceGrid-grpmcc/Locator:default -h 10.147.17.101 -p 4071:default -h 10.147.17.101 -p 4072:default -h 10.147.17.101 -p 4073
 
 Ice.ThreadPool.Server.Size=80
 Ice.ThreadPool.Server.SizeMax=400

@@ -6,7 +6,15 @@
   <component name="ChangeListManager">
     <list default="true" id="9ee6b384-72c4-4b60-a4b5-1564fc65236d" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/centralServer/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/centralServer/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/centralServer/src/main/java/CitizenDAO.java" beforeDir="false" afterPath="$PROJECT_DIR$/centralServer/src/main/java/CitizenDAO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/departmentalReliableMessaging/src/main/java/DepartmentalVoteRetryWorker.java" beforeDir="false" afterPath="$PROJECT_DIR$/departmentalReliableMessaging/src/main/java/DepartmentalVoteRetryWorker.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/departmentalServer/src/main/java/VotationI.java" beforeDir="false" afterPath="$PROJECT_DIR$/departmentalServer/src/main/java/VotationI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/departmentalServer/src/main/resources/config.departamentalServer" beforeDir="false" afterPath="$PROJECT_DIR$/departmentalServer/src/main/resources/config.departamentalServer" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reliableMessaging/src/main/java/ReliableMessagingService.java" beforeDir="false" afterPath="$PROJECT_DIR$/reliableMessaging/src/main/java/ReliableMessagingService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reliableMessaging/src/main/java/VoteRetryWorker.java" beforeDir="false" afterPath="$PROJECT_DIR$/reliableMessaging/src/main/java/VoteRetryWorker.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/votingMachine/src/main/java/VotingMachine.java" beforeDir="false" afterPath="$PROJECT_DIR$/votingMachine/src/main/java/VotingMachine.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/votingSite/src/main/java/VotingSite.java" beforeDir="false" afterPath="$PROJECT_DIR$/votingSite/src/main/java/VotingSite.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/votingSite/src/main/resources/config.votingSite" beforeDir="false" afterPath="$PROJECT_DIR$/votingSite/src/main/resources/config.votingSite" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -40,22 +48,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Gradle.VotationSystem:queryMachine [:queryMachine:Main.main()].executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/dmh18/Documents/VotationSystem&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Gradle.VotationSystem:queryMachine [:queryMachine:Main.main()].executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/dmh18/Documents/VotationSystem",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>

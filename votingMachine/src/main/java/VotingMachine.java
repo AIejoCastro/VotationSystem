@@ -28,7 +28,7 @@ public class VotingMachine {
 
         try {
             communicator = com.zeroc.Ice.Util.initialize(args);
-            communicator.getProperties().setProperty("Ice.Default.Locator", "DemoIceGrid/Locator:default -h localhost -p 4061");
+            communicator.getProperties().setProperty("Ice.Default.Locator", "DemoIceGrid-grpmcc/Locator:default -h 10.147.17.101 -p 4071");
 
             if (initializeSystem()) {
                 startVotingInterface();
@@ -49,7 +49,7 @@ public class VotingMachine {
         try {
             // Conectar al sistema de votación
             votingProxy = VotingProxyPrx.checkedCast(
-                    communicator.stringToProxy("VotingProxy:default -h localhost -p 9999"));
+                    communicator.stringToProxy("VotingProxy:default -h 10.147.17.102 -p 9911"));
 
             if (votingProxy == null) {
                 System.err.println("❌ No se pudo conectar al sistema");
@@ -76,7 +76,7 @@ public class VotingMachine {
             System.out.println("📡 Conectando al servidor central...");
 
             centralProxy = CentralVotationPrx.checkedCast(
-                    communicator.stringToProxy("CentralVotation:default -h localhost -p 8888"));
+                    communicator.stringToProxy("CentralVotation:default -h 10.147.17.101 -p 8899"));
 
             if (centralProxy != null) {
                 // Crear adaptador para callbacks

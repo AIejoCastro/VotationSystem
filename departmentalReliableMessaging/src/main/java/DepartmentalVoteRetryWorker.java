@@ -237,7 +237,7 @@ public class DepartmentalVoteRetryWorker extends Thread {
     private CentralVotationPrx getActiveCentralProxy() {
         try {
             // Conectar directamente al CentralServer en puerto 8888
-            String centralServerEndpoint = "CentralVotation:default -h localhost -p 8888";
+            String centralServerEndpoint = "CentralVotation:default -h 10.147.17.101 -p 8899";
 
             com.zeroc.Ice.ObjectPrx baseProxy = communicator.stringToProxy(centralServerEndpoint);
             CentralVotationPrx proxy = CentralVotationPrx.checkedCast(baseProxy);

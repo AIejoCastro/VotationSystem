@@ -146,7 +146,7 @@ public class ReliableMessagingService {
     public static void main(String[] args) {
         System.out.println("[ReliableMessaging] Ejecutando como servicio independiente");
         try (com.zeroc.Ice.Communicator communicator = com.zeroc.Ice.Util.initialize(args)) {
-            communicator.getProperties().setProperty("Ice.Default.Locator", "DemoIceGrid/Locator:default -h localhost -p 4061");
+            communicator.getProperties().setProperty("Ice.Default.Locator", "DemoIceGrid-grpmcc/Locator:default -h 10.147.17.101 -p 4071");
 
             try {
                 communicator.getProperties().load("reliableMessaging/src/main/resources/config.reliableMessaging");

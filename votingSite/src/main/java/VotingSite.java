@@ -17,7 +17,7 @@ public class VotingSite {
                 System.out.println("[VotingSite] Configuración ReliableMessaging cargada correctamente");
             } catch (Exception e) {
                 System.out.println("[VotingSite] Usando configuración por defecto para ReliableMessaging");
-                communicator.getProperties().setProperty("Ice.Default.Locator", "DemoIceGrid/Locator:default -h localhost -p 4061");
+                communicator.getProperties().setProperty("Ice.Default.Locator", "DemoIceGrid/Locator:default -h 10.147.17.101 -p 4071");
             }
 
             if (!extraArgs.isEmpty()) {
@@ -42,7 +42,7 @@ public class VotingSite {
 
         // Conectar a IceGrid
         com.zeroc.IceGrid.QueryPrx query =
-                com.zeroc.IceGrid.QueryPrx.checkedCast(communicator.stringToProxy("DemoIceGrid/Query"));
+                com.zeroc.IceGrid.QueryPrx.checkedCast(communicator.stringToProxy("DemoIceGrid-grpmcc/Query"));
 
         if (query == null) {
             System.err.println("[VotingSite] No se pudo conectar al IceGrid Query. ¿Está ejecutándose el registry?");
@@ -67,7 +67,7 @@ public class VotingSite {
 
         // Crear adaptador para el proxy de VotingMachine
         com.zeroc.Ice.ObjectAdapter adapter = communicator.createObjectAdapterWithEndpoints(
-                "VotingProxyAdapter", "default -p 9999"
+                "VotingProxyAdapter", "default -p 9911"
         );
 
         // Crear e instalar el servant del proxy
@@ -76,7 +76,7 @@ public class VotingSite {
 
         adapter.activate();
 
-        System.out.println("[VotingSite] Servidor proxy iniciado en puerto 9999");
+        System.out.println("[VotingSite] Servidor proxy iniciado en puerto 9911");
         System.out.println("[VotingSite] Esperando conexiones de VotingMachine...");
         System.out.println("[VotingSite] Reliable Messaging activo para garantizar entrega");
 

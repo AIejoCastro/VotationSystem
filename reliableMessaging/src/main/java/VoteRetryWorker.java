@@ -183,7 +183,7 @@ public class VoteRetryWorker extends Thread {
     private VotationPrx getActiveProxy() {
         try {
             QueryPrx query = QueryPrx.checkedCast(
-                    communicator.stringToProxy("DemoIceGrid/Query")
+                    communicator.stringToProxy("DemoIceGrid-grpmcc/Query")
             );
             if (query == null) {
                 if (verboseLogging) {
