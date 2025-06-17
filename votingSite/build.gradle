@@ -5,7 +5,7 @@ plugins {
 }
 
 application {
-    mainClass = 'CentralServer' // 👈 Cambia esto si tu clase main se llama distinto
+    mainClass = 'VotingSite' // 👈 Cambia esto si tu clase main se llama distinto
 }
 
 tasks.withType(JavaCompile) {

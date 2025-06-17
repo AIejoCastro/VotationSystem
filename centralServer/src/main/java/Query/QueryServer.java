@@ -13,7 +13,7 @@ public class QueryServer {
             }));
 
             ObjectAdapter adapter = communicator.createObjectAdapterWithEndpoints(
-                    "QueryAdapter", "tcp -h 0.0.0.0 -p 8888"
+                    "QueryAdapter", "tcp -h 0.0.0.0 -p 8899"
             );
 
             QueryStationI servant = new QueryStationI();
